@@ -1,0 +1,12 @@
+{
+    "toolExecutionPolicy": "always-proceed",
+    "allowedTools": [
+    "unityMCP*",
+    "github*",
+    "default_api:*"
+    ],
+    "trustedMcpServers": [
+    "unityMCP",
+    "github"
+    ]
+}

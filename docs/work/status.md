@@ -1,7 +1,7 @@
 # 개발 및 기획 진행 상태 (Status)
 
 ## [현재 상태]
-- [QA] [플레이어 잔기 및 리스폰/무적] QA 4대 검수 통과 및 worklist [x] 완료 ➔ 사용자 최종 Merge 대기
+- [QA] [3차 베지어 곡선 궤적 이동 엔진] QA 4대 검수 통과 및 worklist [x] 완료 ➔ 사용자 최종 Merge 대기
 
 > **[현재 상태 표준 전이 규격 안내]**
 > - **1. 기획 완료**: `[Designer] 기획 분석 완료 및 코어루프 조건 달성 ➔ Developer 작업 진행 가능` *(미달 시: `[Designer] 코어루프 조건 미달성 (기획 보완 대기)`)*
@@ -25,8 +25,8 @@
 
 ## [개발 요소 제안항목]
 - [ ] **아키텍처 설계 제안**:
-  - `BezierPathController`: 3차 베지어 제어점 데이터 기반 적 궤적 계산 유틸리티
   - `ObjectPoolManager`: 탄환, 적 스폰, 폭발 이펙트의 GC 최소화를 위한 제네릭 풀링 시스템
   - `FormationGridManager`: 40기 적 슬롯 좌표 매핑 및 일괄 호흡(Sine wave) 애니메이션 관리
   - `StageDirector`: 웨이브 스폰 ➔ 편대 대기 ➔ 다이브 공격 ➔ 챌린징 스테이지 상태 제어 FSM
   - `GameEventManager`: 점수 변경, 잔기 증감, 도킹 이벤트 등을 발행/구독하는 C# Action 기반 이벤트 버스
+  - `BezierPathAsset`: ScriptableObject 기반으로 정적 비행 궤적 데이터를 에셋화하여 재사용 및 인스펙터 편집 지원
