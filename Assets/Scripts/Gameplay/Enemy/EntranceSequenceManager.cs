@@ -37,7 +37,7 @@ namespace Galaga.Gameplay.Enemy
         [SerializeField] private float _waveInterval = 1.2f;
 
         [Tooltip("씬 시작 시 자동으로 진입 시퀀스를 시작할지 여부")]
-        [SerializeField] private bool _autoStartOnPlay = false;
+        [SerializeField] private bool _autoStartOnPlay = true;
 
         private bool _isSequenceRunning = false;
         private int _currentWaveIndex = 0;

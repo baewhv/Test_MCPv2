@@ -73,4 +73,4 @@ MonoBehaviour:
   _enemyContainer: {fileID: 0}
   _spawnInterval: 0.2
   _waveInterval: 1.2
-  _autoStartOnPlay: 0
+  _autoStartOnPlay: 1
