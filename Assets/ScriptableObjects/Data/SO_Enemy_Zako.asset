@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1100002884b5c84caf69f2b04d91c02, type: 3}
+  m_Name: SO_Enemy_Zako
+  m_EditorClassIdentifier: Assembly-CSharp::Galaga.Gameplay.Enemy.EnemyDataSO
+  _enemyType: 0
+  _enemyName: Zako
+  _maxHP: 1
+  _scoreStay: 50
+  _scoreDive: 100
+  _moveSpeed: 10
+  _normalColor: {r: 0.2, g: 0.5, b: 1, a: 1}
+  _damagedColor: {r: 0.2, g: 0.5, b: 1, a: 1}
+  _flashColor: {r: 1, g: 1, b: 1, a: 1}
+  _flashDuration: 0.08

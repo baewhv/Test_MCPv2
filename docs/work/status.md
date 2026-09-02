@@ -1,7 +1,7 @@
 # 개발 및 기획 진행 상태 (Status)
 
 ## [현재 상태]
-- [QA] [3차 베지어 곡선 궤적 이동 엔진] QA 4대 검수 통과 및 worklist [x] 완료 ➔ 사용자 최종 Merge 대기
+- [Developer] [Phase 2: Task 2-2 ~ 2-4 적 스펙 및 40기 편대 진입/안착] C# 구현, 프리팹 완제품 제작 및 단위 테스트 작성 완료 ➔ git_manager에게 커밋/PR 인계
 
 > **[현재 상태 표준 전이 규격 안내]**
 > - **1. 기획 완료**: `[Designer] 기획 분석 완료 및 코어루프 조건 달성 ➔ Developer 작업 진행 가능` *(미달 시: `[Designer] 코어루프 조건 미달성 (기획 보완 대기)`)*
@@ -24,9 +24,9 @@
   - *[추천]*: Artist 에이전트의 절차적/나노바나나 생성 리소스와 Unity 내장 기본 2D 스프라이트를 1차 활용하고, 사운드는 AudioSynth/Procedural 사운드 또는 에셋 번들 연동.
 
 ## [개발 요소 제안항목]
-- [ ] **아키텍처 설계 제안**:
-  - `ObjectPoolManager`: 탄환, 적 스폰, 폭발 이펙트의 GC 최소화를 위한 제네릭 풀링 시스템
-  - `FormationGridManager`: 40기 적 슬롯 좌표 매핑 및 일괄 호흡(Sine wave) 애니메이션 관리
+- [x] **Task 2-2: 적 기본 클래스 및 3종 기체 데이터/스펙 정의** (C# 및 SO_Enemy_*.asset, PF_Enemy_*.prefab 구현 완료)
+- [x] **Task 2-3: 상단 40기 편대 그리드 배치 및 Sine wave 호흡 연출** (FormationGridManager 구현 완료)
+- [x] **Task 2-4: 5개 웨이브 순차 편대 진입 매니저** (EntranceSequenceManager 구현 완료)
+- [ ] **Phase 3 최적화 제안**:
+  - `EnemyObjectPool`: 웨이브 스폰 시 가비지 컬렉션을 최소화하기 위해 적 기체 오브젝트 풀링 시스템 도입 제안
   - `StageDirector`: 웨이브 스폰 ➔ 편대 대기 ➔ 다이브 공격 ➔ 챌린징 스테이지 상태 제어 FSM
-  - `GameEventManager`: 점수 변경, 잔기 증감, 도킹 이벤트 등을 발행/구독하는 C# Action 기반 이벤트 버스
-  - `BezierPathAsset`: ScriptableObject 기반으로 정적 비행 궤적 데이터를 에셋화하여 재사용 및 인스펙터 편집 지원

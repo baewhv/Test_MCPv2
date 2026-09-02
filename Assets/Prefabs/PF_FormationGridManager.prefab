@@ -1,0 +1,76 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1100000000000000001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4400000000000000001}
+  - component: {fileID: 1140000000000000001}
+  - component: {fileID: 1140000000000000002}
+  m_Layer: 0
+  m_Name: PF_FormationGridManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4400000000000000001
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1100000000000000001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1140000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1100000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1100005884b5c84caf69f2b04d91c05, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Galaga.Gameplay.Enemy.FormationGridManager
+  _gridOrigin: {x: 0, y: 6}
+  _rowSpacing: 0.9
+  _columnSpacing: 1
+  _enableHoverAnimation: 1
+  _swayFrequency: 1.5
+  _swayAmplitude: 0.6
+  _expandFrequency: 2
+  _expandAmplitude: 0.12
+  _slots: []
+--- !u!114 &1140000000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1100000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1100006884b5c84caf69f2b04d91c06, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Galaga.Gameplay.Enemy.EntranceSequenceManager
+  _gridManager: {fileID: 1140000000000000001}
+  _zakoPrefab: {fileID: 5100000000000000001, guid: c3300001884b5c84caf69f2b04d93001, type: 3}
+  _goeiPrefab: {fileID: 6100000000000000001, guid: c3300002884b5c84caf69f2b04d93002, type: 3}
+  _bossPrefab: {fileID: 7100000000000000001, guid: c3300003884b5c84caf69f2b04d93003, type: 3}
+  _enemyContainer: {fileID: 0}
+  _spawnInterval: 0.2
+  _waveInterval: 1.2
+  _autoStartOnPlay: 0
