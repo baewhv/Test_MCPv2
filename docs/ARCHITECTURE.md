@@ -9,16 +9,16 @@
 
 | 발신 객체 (Sender) | 수신 객체 (Receiver) | 감지 방식 (Trigger / Collision) | 상호작용 내용 및 호출 메서드 |
 | :--- | :--- | :--- | :--- |
+| `PlayerController` (`PF_Player`) | `PlayAreaManager` | 직접 참조 / 메서드 호출 | `ClampPosition()`을 호출하여 화면 좌우 경계 밖 이탈 방지 |
 | `PlayAreaManager` (BoundaryColliders) | `Player` / `Bullet` / `Enemy` | OnTriggerEnter2D / ClampPosition / IsOutOfBounds | 플레이어 화면 이탈 방지 클램프 및 화면 외곽 탄환 소멸/적 회수 판정 |
 
 ---
 
 ## 2. 객체 생성 및 생명주기 관리 (Spawn & Lifecycle Management)
 
-- **매니저 및 씬 싱글톤 구조**:
+- **플레이어 및 씬 구조**:
+  - `PlayerController`: 화면 최하단(Y: -8)에 위치하여 New Input System 또는 키보드 입력을 통해 1차원 수평 이동 및 경계 제한 수행
   - `PlayAreaManager`: Main Camera에 상주하며 3:4(224x288) 종횡비 뷰포트 자동 정렬 및 플레이 영역 경계 Bounds/콜라이더 생명주기 관리
-- **오브젝트 스포너 및 풀링 구조**:
-  - *(차기 태스크에서 Bullet 및 Enemy 스포너/풀 추가 예정)*
 
 ---
 
@@ -26,6 +26,7 @@
 
 | 이벤트 발행자 (Publisher) | 이벤트 명 (Event / Action) | 구독자 (Subscriber) | 반응 로직 (Handler Method) |
 | :--- | :--- | :--- | :--- |
+| `InputSystem (Player/Move)` | `ReadValue<Vector2>()` | `PlayerController` | `OnEnable()`/`OnDisable()`에서 액션 활성화/해제 및 실시간 X축 이동 반영 |
 | `PlayAreaManager` | `RecalculateBounds()` | `Camera` / `BoundaryColliders` | 해상도 변경 시 카메라 Rect 및 외곽 충돌체 재배치 |
 
 ---
@@ -34,7 +35,7 @@
 
 | 데이터 SO (Asset) | 참조 컴포넌트 (Consumer) | 전달 데이터 및 역할 |
 | :--- | :--- | :--- |
-| *(차기 태스크에서 적/플레이어 SO 추가 예정)* | - | - |
+| *(차기 태스크에서 적/플레이어 스탯 SO 추가 예정)* | - | - |
 
 ---
 
@@ -42,10 +43,12 @@
 
 ```mermaid
 graph TD
-    MainCamera["Main Camera (Camera)"]
+    InputSystem["New Input System (Player/Move)"]
+    Player["PlayerController (PF_Player)"]
     PlayAreaManager["PlayAreaManager (Core)"]
     Boundaries["BoundaryColliders (Left/Right/Top/Bottom)"]
     
-    MainCamera --> PlayAreaManager
+    InputSystem --> Player
+    Player --> PlayAreaManager
     PlayAreaManager --> Boundaries
 ```
