@@ -33,12 +33,18 @@ namespace Galaga.Tests
 
             // Enemy 설정
             _testEnemyData = ScriptableObject.CreateInstance<EnemyDataSO>();
-            _testEnemyData.EnemyName = "TestZako";
-            _testEnemyData.Type = EnemyType.Zako;
-            _testEnemyData.MaxHP = 2;
-            _testEnemyData.MoveSpeed = 10f;
-            _testEnemyData.ScoreStay = 50;
-            _testEnemyData.ScoreDive = 100;
+            _testEnemyData.Initialize(
+                type: EnemyType.Zako,
+                enemyName: "TestZako",
+                maxHp: 2,
+                scoreStay: 50,
+                scoreDive: 100,
+                moveSpeed: 10f,
+                normalColor: Color.blue,
+                damagedColor: Color.cyan,
+                flashColor: Color.white,
+                flashDuration: 0.08f
+            );
 
             _enemyObj = new GameObject("TestEnemy");
             _enemyObj.tag = "Enemy";
