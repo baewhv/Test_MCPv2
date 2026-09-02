@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 4177222492341223683}
   - component: {fileID: 6344913608605287558}
   - component: {fileID: 1241390274585746333}
-  - component: {fileID: 4755871988876426173}
   - component: {fileID: 8812345678901234567}
   m_Layer: 0
   m_Name: PF_Player
@@ -132,28 +131,6 @@ MonoBehaviour:
   _fixedYPosition: -8
   _playAreaManager: {fileID: 0}
   _moveAction: {fileID: 0}
---- !u!114 &4755871988876426173
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4373121201501240708}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5be101ef8abf04241abae4bae2b4ae77, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Galaga.Gameplay.Combat.PlayerShooting
-  _maxSimultaneousBullets: 2
-  _fireCooldown: 0.05
-  _isDualFighter: 0
-  _centerFirePoint: {fileID: 0}
-  _leftFirePoint: {fileID: 0}
-  _rightFirePoint: {fileID: 0}
-  _bulletPrefab: {fileID: 0}
-  _initialPoolSize: 6
-  _playAreaManager: {fileID: 0}
-  _attackAction: {fileID: 0}
 --- !u!114 &8812345678901234567
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -19,3 +19,8 @@
 | 14:04:49 | QA | GitManager | QA 승인 | [플레이어 잔기 및 리스폰] QA 4대 검수 통과 및 Phase 1 완료, 사용자 머지 대기 |
 | 14:06:59 | Orchestrator | GitManager | 일감 위임 | 스크린샷 docs/screenshots/ 이전 및 Type 1 develop 직접 커밋 요청 |
 | 14:15:30 | GitManager | System | 문서 직접 커밋 | 스크린샷 docs/screenshots/ 이전 및 프로젝트 마스터 지침 develop 동기화 완료 |
+| 14:22:02 | GitManager | System | 머지 및 완료 | [플레이어 잔기 및 리스폰] PR #4 머지 확인 및 Working Tree 100% Clean 정리 완료 |
+| 14:22:16 | Orchestrator | Developer | 일감 위임 | Task 2-1: 3차 베지어 곡선(Cubic Bézier) 궤적 이동 엔진 구현 전담 위임 |
+| 14:27:49 | Developer | GitManager | PR 요청 | [Task 2-1: 3차 베지어 곡선 궤적 이동 엔진] C# 구현 및 단위 테스트 완료, 커밋/PR 요청 |
+| 14:35:12 | QA | QA | 검수 착수 | [3차 베지어 곡선 궤적 이동 엔진] QA 4대 검수 절차 착수 |
+| 14:39:10 | QA | GitManager | QA 승인 | [3차 베지어 곡선 궤적 이동 엔진] QA 4대 검수 통과 및 worklist [x] 완료, 사용자 머지 대기 |

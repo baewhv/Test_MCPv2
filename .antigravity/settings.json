@@ -1,0 +1,34 @@
+{
+  "toolExecutionPolicy": "always-proceed",
+  "autoApprove": true,
+  "allowedTools": [
+    "CallMcpTool",
+    "call_mcp_tool",
+    "unityMCP*",
+    "github*",
+    "default_api:*",
+    "run_command",
+    "write_to_file",
+    "replace_file_content",
+    "view_file",
+    "*"
+  ],
+  "trustedMcpServers": [
+    "unityMCP",
+    "github",
+    "notion",
+    "jetbrains-companion-rd-27055540"
+  ],
+  "allowedCommands": [
+    "node *",
+    "git *",
+    "npm *",
+    "*"
+  ],
+  "commandAllowlist": [
+    "node *",
+    "git *",
+    "npm *",
+    "*"
+  ]
+}
