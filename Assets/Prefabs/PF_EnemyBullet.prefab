@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &7100000000000000001
+--- !u!1 &2142684326320996047
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,50 +8,48 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 7400000000000000001}
-  - component: {fileID: 7330000000000000001}
-  - component: {fileID: 7230000000000000001}
-  - component: {fileID: 7140000000000000001}
-  - component: {fileID: 7140000000000000002}
-  - component: {fileID: 924446878856436933}
-  - component: {fileID: 2225165559388909497}
+  - component: {fileID: 1999313906743533502}
+  - component: {fileID: 4211203213022489605}
+  - component: {fileID: 5299021528087740705}
+  - component: {fileID: 3281867225702435114}
+  - component: {fileID: 951017858408526202}
   m_Layer: 0
-  m_Name: PF_Enemy_Boss
-  m_TagString: Enemy
+  m_Name: PF_EnemyBullet
+  m_TagString: EnemyBullet
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &7400000000000000001
+--- !u!4 &1999313906743533502
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7100000000000000001}
+  m_GameObject: {fileID: 2142684326320996047}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 0.1}
+  m_LocalScale: {x: 0.2, y: 0.45, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &7330000000000000001
+--- !u!33 &4211203213022489605
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7100000000000000001}
+  m_GameObject: {fileID: 2142684326320996047}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &7230000000000000001
+--- !u!23 &5299021528087740705
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7100000000000000001}
+  m_GameObject: {fileID: 2142684326320996047}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -70,7 +68,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 33653d01b18fe0149861ed56789cae0f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -94,53 +92,13 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &7140000000000000001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7100000000000000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 823f1f36458735f4d9c0a23ae852b4c7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Galaga.Gameplay.Enemy.BezierPathFollower
-  _moveSpeed: 9
-  _rotateAlongPath: 1
-  _rotationOffset: -90
-  _loop: 0
-  _autoPlayOnEnable: 0
-  _disableOnComplete: 0
-  _segments: []
-  _drawGizmos: 1
-  _gizmoColor: {r: 0, g: 1, b: 1, a: 1}
-  _gizmoResolution: 20
---- !u!114 &7140000000000000002
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7100000000000000001}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1100003884b5c84caf69f2b04d91c03, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Galaga.Gameplay.Enemy.EnemyBase
-  _enemyData: {fileID: 11400000, guid: b2200003884b5c84caf69f2b04d92003, type: 2}
-  _pathFollower: {fileID: 7140000000000000001}
-  _renderer: {fileID: 7230000000000000001}
-  _collider: {fileID: 924446878856436933}
-  _currentState: 0
-  _currentHP: 2
---- !u!61 &924446878856436933
+--- !u!61 &3281867225702435114
 BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7100000000000000001}
+  m_GameObject: {fileID: 2142684326320996047}
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
@@ -178,25 +136,20 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 0.2, y: 0.45}
   m_EdgeRadius: 0
---- !u!114 &2225165559388909497
+--- !u!114 &951017858408526202
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7100000000000000001}
+  m_GameObject: {fileID: 2142684326320996047}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bdd8c99ca72ffbf41a2d041dcfd0908d, type: 3}
+  m_Script: {fileID: 11500000, guid: b93e1a7aa38b030498911b46355afbf2, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Galaga.Gameplay.Enemy.EnemyShooting
-  _maxShotsPerDive: 1
-  _fireProgressMin: 0.3
-  _fireProgressMax: 0.6
-  _bulletSpeed: 16
-  _shotCooldown: 0.2
-  _enemyBase: {fileID: 0}
-  _playerTransform: {fileID: 0}
-  _bulletPool: {fileID: 0}
+  m_EditorClassIdentifier: Assembly-CSharp::Galaga.Gameplay.Combat.EnemyBullet
+  _speed: 16
+  _damage: 1
+  _playAreaManager: {fileID: 0}

@@ -16,6 +16,9 @@ namespace Galaga.Gameplay.Enemy
         [Tooltip("편대 그리드 매니저 참조")]
         [SerializeField] private FormationGridManager _gridManager;
 
+        [Tooltip("급강하 공격 컨트롤러 참조 (진입 완료 후 다이브 자동 시작용)")]
+        [SerializeField] private EnemyDiveController _diveController;
+
         [Header("Enemy Prefabs")]
         [Tooltip("자코 완제품 프리팹 (PF_Enemy_Zako)")]
         [SerializeField] private GameObject _zakoPrefab;
@@ -57,6 +60,12 @@ namespace Galaga.Gameplay.Enemy
             set => _gridManager = value;
         }
 
+        public EnemyDiveController DiveController
+        {
+            get => _diveController;
+            set => _diveController = value;
+        }
+
         public GameObject ZakoPrefab
         {
             get => _zakoPrefab;
@@ -95,6 +104,11 @@ namespace Galaga.Gameplay.Enemy
 
         private void Start()
         {
+            if (_diveController == null)
+            {
+                _diveController = GetComponent<EnemyDiveController>();
+            }
+
             if (_autoStartOnPlay)
             {
                 StartEntranceSequence();
@@ -173,6 +187,11 @@ namespace Galaga.Gameplay.Enemy
             _isSequenceRunning = false;
             _sequenceCoroutine = null;
             OnSequenceCompleted?.Invoke();
+
+            if (_diveController != null)
+            {
+                _diveController.StartAutoDive();
+            }
         }
 
         private IEnumerator SpawnWaveRoutine(int waveIndex)

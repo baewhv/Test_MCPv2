@@ -1,7 +1,7 @@
 # 개발 및 기획 진행 상태 (Status)
 
 ## [현재 상태]
-- [QA] [Phase 2: 편대 진입/안착] QA 4대 검수 통과 및 worklist [x] 완료 ➔ 사용자 최종 Merge 대기
+- [Developer] [Phase 3: Task 3-1 ~ 3-4 적 급강하 AI, 탄환 사격 및 충돌/격파 전투 시스템] C# 구현 및 프리팹/씬 조립 완료 ➔ git_manager에게 커밋/PR 인계
 
 > **[현재 상태 표준 전이 규격 안내]**
 > - **1. 기획 완료**: `[Designer] 기획 분석 완료 및 코어루프 조건 달성 ➔ Developer 작업 진행 가능` *(미달 시: `[Designer] 코어루프 조건 미달성 (기획 보완 대기)`)*
@@ -24,9 +24,17 @@
   - *[추천]*: Artist 에이전트의 절차적/나노바나나 생성 리소스와 Unity 내장 기본 2D 스프라이트를 1차 활용하고, 사운드는 AudioSynth/Procedural 사운드 또는 에셋 번들 연동.
 
 ## [개발 요소 제안항목]
-- [x] **Task 2-2: 적 기본 클래스 및 3종 기체 데이터/스펙 정의** (C# 및 SO_Enemy_*.asset, PF_Enemy_*.prefab 구현 완료)
-- [x] **Task 2-3: 상단 40기 편대 그리드 배치 및 Sine wave 호흡 연출** (FormationGridManager 구현 완료)
-- [x] **Task 2-4: 5개 웨이브 순차 편대 진입 매니저** (EntranceSequenceManager 구현 완료)
-- [ ] **Phase 3 최적화 제안**:
-  - `EnemyObjectPool`: 웨이브 스폰 시 가비지 컬렉션을 최소화하기 위해 적 기체 오브젝트 풀링 시스템 도입 제안
-  - `StageDirector`: 웨이브 스폰 ➔ 편대 대기 ➔ 다이브 공격 ➔ 챌린징 스테이지 상태 제어 FSM
+- [x] **Phase 3 구현 완료 (Task 3-1 ~ 3-4)**:
+  - `EnemyDiveController`: 3차 베지어 단독/호위 다이브 궤적 및 화면 하단 통과 후 상단 루프 복귀 AI
+  - `EnemyBullet` & `EnemyBulletPool`: 하향 탄속 16 units/sec 조준 탄환 풀링 시스템
+  - `EnemyShooting`: 다이브 중간 구간($t=0.3\sim 0.6$) 조준 사격 알고리즘
+  - `PlayerBullet` <-> `EnemyBase` <-> `PlayerHealth` 2D 히트박스 충돌 및 데미지 파이프라인
+  - `ExplosionEffect` & `ExplosionManager`: 파티클 버스트 폭발 이펙트 풀링 및 격파 자동 연동
+  - 완제품 프리팹 (`PF_EnemyBullet`, `PF_Explosion`, `PF_Enemy_*`, `PF_Player`, `PF_FormationGridManager`)
+  - NUnit EditMode 단위 테스트 42건 100% 통과
+
+- [ ] **Phase 4 대비 아키텍처 확장 제안**:
+  - `ScoreManager`: 적 격파 시 대기/비행/보스호위별 차등 점수 가산 및 2만/7만점 익스텐드 지급
+  - `StageDirector`: 40기 전멸 감지(Stage Clear) 및 다음 스테이지 전환 FSM
+  - `ChallengingStageManager`: 4주기 보너스 라운드 비공격 비행 및 격파 집계
+  - `DynamicRankManager`: 스테이지 진행도 및 생존 시간에 따른 탄속/다이브 빈도 가변 조정

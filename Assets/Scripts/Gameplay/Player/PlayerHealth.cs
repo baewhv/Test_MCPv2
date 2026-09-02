@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using Galaga.Gameplay.Combat;
 
 namespace Galaga.Gameplay.Player
 {
@@ -125,6 +126,11 @@ namespace Galaga.Gameplay.Player
             _currentLives -= damage;
             OnLivesChanged?.Invoke(_currentLives);
 
+            if (ExplosionManager.Instance != null)
+            {
+                ExplosionManager.Instance.SpawnExplosion(transform.position, 1.5f, 0.6f);
+            }
+
             if (_currentLives <= 0)
             {
                 _currentLives = 0;
@@ -236,8 +242,42 @@ namespace Galaga.Gameplay.Player
                 return;
             }
 
-            // 적 기체 또는 적 탄환과 충돌 시 피격
-            if (collision.CompareTag("Enemy") || collision.CompareTag("EnemyBullet"))
+            if (collision.CompareTag("EnemyBullet") || collision.name.Contains("EnemyBullet"))
+            {
+                EnemyBullet bullet = collision.GetComponent<EnemyBullet>();
+                if (bullet != null)
+                {
+                    bullet.ReturnToPool();
+                }
+                TakeDamage(1);
+                return;
+            }
+
+            if (collision.CompareTag("Enemy") || collision.name.Contains("Enemy"))
+            {
+                TakeDamage(1);
+            }
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (other == null || _isInvincible || _isDead)
+            {
+                return;
+            }
+
+            if (other.CompareTag("EnemyBullet") || other.name.Contains("EnemyBullet"))
+            {
+                EnemyBullet bullet = other.GetComponent<EnemyBullet>();
+                if (bullet != null)
+                {
+                    bullet.ReturnToPool();
+                }
+                TakeDamage(1);
+                return;
+            }
+
+            if (other.CompareTag("Enemy") || other.name.Contains("Enemy"))
             {
                 TakeDamage(1);
             }
