@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4400000000000000001}
   - component: {fileID: 1140000000000000001}
   - component: {fileID: 1140000000000000002}
+  - component: {fileID: 3436246693734987880}
   m_Layer: 0
   m_Name: PF_FormationGridManager
   m_TagString: Untagged
@@ -67,6 +68,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Galaga.Gameplay.Enemy.EntranceSequenceManager
   _gridManager: {fileID: 1140000000000000001}
+  _diveController: {fileID: 3436246693734987880}
   _zakoPrefab: {fileID: 5100000000000000001, guid: c3300001884b5c84caf69f2b04d93001, type: 3}
   _goeiPrefab: {fileID: 6100000000000000001, guid: c3300002884b5c84caf69f2b04d93002, type: 3}
   _bossPrefab: {fileID: 7100000000000000001, guid: c3300003884b5c84caf69f2b04d93003, type: 3}
@@ -74,3 +76,26 @@ MonoBehaviour:
   _spawnInterval: 0.2
   _waveInterval: 1.2
   _autoStartOnPlay: 1
+--- !u!114 &3436246693734987880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1100000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39b8026eee803a34997e7fd98c033b5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Galaga.Gameplay.Enemy.EnemyDiveController
+  _gridManager: {fileID: 1140000000000000001}
+  _playerTransform: {fileID: 0}
+  _playAreaManager: {fileID: 0}
+  _diveInterval: 2.5
+  _diveSpeed: 11
+  _returnSpeed: 10
+  _maxConcurrentDives: 4
+  _playerLeadTime: 0.25
+  _autoDiveEnabled: 0
+  _screenBottomY: -11
+  _screenTopY: 11
