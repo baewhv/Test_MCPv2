@@ -31,7 +31,7 @@
 - **Target Platform**: `PC, Mac & Linux Standalone`
 - **Asset Root**: `Assets/`
 - **Raw Imports Root (Submodule Boundary)**: `Assets/_Imports/`
-- **Default Screenshot Output**: `Assets/Screenshots`
+- **Default Screenshot Output**: `docs/screenshots`
 - **Core Loop Test Scene**: `Assets/Scenes/SampleScene.unity`
 
 ---

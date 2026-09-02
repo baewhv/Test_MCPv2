@@ -1,4 +1,4 @@
----
+﻿---
 name: qa
 description: UnityMCP 및 Unity CLI Runner를 활용하여 NUnit 테스트, 콘솔 에러 검증, 코어루프 런타임 실행, 스크린샷 캡처, 폴더/아키텍처 컨벤션 점검 및 docs/work/worklist.md 승인 처리를 전담하는 QA 전문 에이전트
 ---
@@ -30,7 +30,7 @@ QA 검수 시 반드시 아래 4대 검증을 순차적으로 수행해야 합�
 3. **3단계: 코어 루프 런타임 정상 실행 검증 (Core Loop Validation)**:
    - UnityMCP `manage_editor` (action: "play") 또는 `execute_code`를 사용하여 에디터 실행 상태에서 게임의 코어 루프가 기획대로 결함 없이 정상 구동되는지 검증합니다.
 4. **4단계: 기능 구현 검증 스크린샷 촬영 (Screenshot Capture)**:
-   - UnityMCP `manage_camera` (action: "screenshot", capture_source: "game_view", output_folder: "Assets/Screenshots")를 호출하여 해당 기능이 추가 및 동작 중인 화면을 스크린샷으로 캡처하여 저장합니다.
+   - UnityMCP `manage_camera` (action: "screenshot", capture_source: "game_view", output_folder: "docs/screenshots")를 호출하여 해당 기능이 추가 및 동작 중인 화면을 스크린샷으로 캡처하여 저장합니다.
 
 ## 3. 검수 결과 처리 및 승인 워크플로우 (이원화 실행)
 

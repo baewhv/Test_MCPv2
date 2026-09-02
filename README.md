@@ -179,8 +179,8 @@ TestMCP/
 │   ├── Scenes/             # 씬 파일 (*Scene.unity, StageX-Y.unity)
 │   ├── ScriptableObjects/  # 데이터 SO 에셋 (SO_*.asset)
 │   ├── Scripts/            # C# 소스 코드
-│   └── Screenshots/        # QA 검수 증빙 캡처 이미지
 ├── docs/
+│   ├── screenshots/        # QA 검수 증빙 캡처 이미지
 │   ├── specs/              # 기획서 투입 디렉토리 (Drop-in Directory)
 │   ├── work/               # 실시간 상태판 (status.md) 및 태스크 체크리스트 (worklist.md)
 │   ├── logs/               # 일일 에이전트 실시간 소통 감사 로그 (agent_comm_*.md)
