@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using Galaga.Core;
+using Galaga.Gameplay.Enemy;
 
 namespace Galaga.Gameplay.Combat
 {
@@ -103,13 +104,12 @@ namespace Galaga.Gameplay.Combat
             }
 
             gameObject.SetActive(false);
-
             _onDeactivatedCallback?.Invoke(this);
         }
 
         private void OnTriggerEnter2D(Collider2D collision)
         {
-            if (collision == null)
+            if (collision == null || !gameObject.activeSelf)
             {
                 return;
             }
@@ -121,9 +121,38 @@ namespace Galaga.Gameplay.Combat
                 return;
             }
 
-            // 적 충돌 판정 시 풀 반환 (추후 적 체력 차감 컴포넌트 연동)
-            if (collision.CompareTag("Enemy"))
+            // 적 충돌 판정 시 데미지 부여 및 풀 반환
+            if (collision.CompareTag("Enemy") || collision.name.Contains("Enemy"))
             {
+                EnemyBase enemy = collision.GetComponent<EnemyBase>();
+                if (enemy != null)
+                {
+                    enemy.TakeDamage(_damage);
+                }
+                ReturnToPool();
+            }
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (other == null || !gameObject.activeSelf)
+            {
+                return;
+            }
+
+            if (other.CompareTag("Boundary") || other.gameObject.name == "TopBorder")
+            {
+                ReturnToPool();
+                return;
+            }
+
+            if (other.CompareTag("Enemy") || other.name.Contains("Enemy"))
+            {
+                EnemyBase enemy = other.GetComponent<EnemyBase>();
+                if (enemy != null)
+                {
+                    enemy.TakeDamage(_damage);
+                }
                 ReturnToPool();
             }
         }

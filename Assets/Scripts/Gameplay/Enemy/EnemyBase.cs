@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using Galaga.Gameplay.Combat;
 
 namespace Galaga.Gameplay.Enemy
 {
@@ -209,6 +210,11 @@ namespace Galaga.Gameplay.Enemy
                 _collider.enabled = false;
             }
 
+            if (ExplosionManager.Instance != null)
+            {
+                ExplosionManager.Instance.HandleEnemyDestroyed(this);
+            }
+
             OnDestroyed?.Invoke(this);
             gameObject.SetActive(false);
         }
@@ -285,9 +291,36 @@ namespace Galaga.Gameplay.Enemy
                 return;
             }
 
-            if (collision.CompareTag("PlayerBullet"))
+            if (collision.CompareTag("PlayerBullet") || collision.name.Contains("Bullet"))
             {
-                TakeDamage(1);
+                PlayerBullet bullet = collision.GetComponent<PlayerBullet>();
+                int dmg = bullet != null ? bullet.Damage : 1;
+                TakeDamage(dmg);
+
+                if (bullet != null)
+                {
+                    bullet.ReturnToPool();
+                }
+            }
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (other == null || IsDead)
+            {
+                return;
+            }
+
+            if (other.CompareTag("PlayerBullet") || other.name.Contains("Bullet"))
+            {
+                PlayerBullet bullet = other.GetComponent<PlayerBullet>();
+                int dmg = bullet != null ? bullet.Damage : 1;
+                TakeDamage(dmg);
+
+                if (bullet != null)
+                {
+                    bullet.ReturnToPool();
+                }
             }
         }
     }

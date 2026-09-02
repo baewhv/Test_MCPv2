@@ -181,7 +181,7 @@ namespace Galaga.Gameplay.Enemy
 
                 slot.CurrentWorldPosition = worldPos;
 
-                if (slot.IsOccupied && slot.Occupant.CurrentState == EnemyState.Formation)
+                if (slot.IsOccupied && slot.Occupant != null && slot.Occupant.CurrentState == EnemyState.Formation)
                 {
                     slot.Occupant.transform.position = new Vector3(worldPos.x, worldPos.y, slot.Occupant.transform.position.z);
                 }
@@ -235,6 +235,10 @@ namespace Galaga.Gameplay.Enemy
                 if (slot.AssignedType == type && !slot.IsOccupied)
                 {
                     slot.AssignOccupant(enemy);
+                    if (enemy != null)
+                    {
+                        enemy.OnDestroyed += ReleaseEnemy;
+                    }
                     return slot;
                 }
             }
@@ -250,6 +254,10 @@ namespace Galaga.Gameplay.Enemy
             if (slot != null)
             {
                 slot.AssignOccupant(enemy);
+                if (enemy != null)
+                {
+                    enemy.OnDestroyed += ReleaseEnemy;
+                }
             }
             return slot;
         }
