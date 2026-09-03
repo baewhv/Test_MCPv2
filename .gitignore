@@ -103,3 +103,7 @@ InitTestScene*.unity*
 
 # Ignore imported assets
 Assets/Imports/**
+
+# Editor runtime noise & caches
+ProjectSettings/ProjectAuditorSettings.asset
+Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF - Fallback.asset

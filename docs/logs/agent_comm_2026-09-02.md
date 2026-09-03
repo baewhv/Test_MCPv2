@@ -29,3 +29,7 @@
 | 14:59:47 | Orchestrator | QA | QA 검수 요청 | Phase 2 통합 PR #6 4대 필수 검수 및 승인 위임 |
 | 15:00:31 | QA | QA | 검수 착수 | [Phase 2: 편대 진입/안착] QA 4대 검수 절차 착수 |
 | 15:13:44 | QA | GitManager | QA 승인 | [Phase 2: 편대 진입/안착] QA 4대 검수 통과 및 worklist [x] 완료, 사용자 머지 대기 |
+| 16:18:05 | Orchestrator | Developer | 결함 수정 위임 | 사용자 최우선 지시: CombatTests.cs 에러 원인 규명 및 수정 위임 |
+| 16:22:45 | Orchestrator | QA | QA 검수 요청 | CombatTests 컴파일 에러 수정 PR #8 4대 필수 검수 및 승인 위임 |
+| 16:24:15 | QA | QA | 검수 착수 | [CombatTests 에러 해결] QA 4대 검수 절차 착수 |
+| 16:29:00 | QA | GitManager | QA 승인 | [CombatTests 에러 해결] QA 4대 검수 통과 및 worklist [x] 완료, 사용자 머지 대기 |

@@ -1,7 +1,11 @@
 # 개발 및 기획 진행 상태 (Status)
 
 ## [현재 상태]
+<<<<<<< Updated upstream
 - [Developer] [CombatTests 에러 해결] C# 컴파일 오류 해결 및 NUnit 단위 테스트 54건 100% 정상 통과 ➔ git_manager에게 커밋/PR 인계
+=======
+- [QA] [CombatTests 에러 해결] QA 4대 검수 통과 및 worklist [x] 완료 ➔ 사용자 최종 Merge 대기
+>>>>>>> Stashed changes
 
 > **[현재 상태 표준 전이 규격 안내]**
 > - **1. 기획 완료**: `[Designer] 기획 분석 완료 및 코어루프 조건 달성 ➔ Developer 작업 진행 가능` *(미달 시: `[Designer] 코어루프 조건 미달성 (기획 보완 대기)`)*
@@ -42,3 +46,8 @@
   - `StageDirector`: 40기 전멸 감지(Stage Clear) 및 다음 스테이지 전환 FSM
   - `ChallengingStageManager`: 4주기 보너스 라운드 비공격 비행 및 격파 집계
   - `DynamicRankManager`: 스테이지 진행도 및 생존 시간에 따른 탄속/다이브 빈도 가변 조정
+  - **`[PROP-06]` [채택완료] `PlayAreaManager` 카메라 컴포넌트 분리**: Main Camera에서 PlayAreaManager를 독립 Managers/PlayAreaManager 오브젝트로 계층화 분리 (`worklist.md` 최우선 지시사항 등록 완료)
+  - **`[PROP-07]` [채택완료] `IDamageable` 인터페이스 도입**: 피격 주체(PlayerHealth, EnemyBase, 향후 포획기)를 인터페이스로 추상화하여 탄환 및 충돌 시스템 완전 디커플링 (`worklist.md` 최우선 지시사항 등록 완료)
+  - **`[PROP-08]` [채택완료] Rigidbody2D 기반 탄환 이동 전환 및 터널링 방지**: Transform.position 직접 이동을 Rigidbody2D.velocity/MovePosition 물리 이동으로 교체하여 Continuous 충돌 스윕 보장, BoxCollider2D 크기 정규화, 피격 플래시 시간(0.15s) 및 시각 피드백 개선 (`worklist.md` 최우선 지시사항 등록 완료)
+
+
