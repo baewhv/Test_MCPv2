@@ -15,6 +15,8 @@ description: git_rule.md 규칙에 따라 Worktree 브랜치 격리, .meta 검�
   - **PR 컨벤션**: 타이틀 `작업내용 - [에이전트 명]`, 본문 요약 작성
   - **.meta 무결성 검증**: Assets/ 내 파일 변경 시 .meta 1:1 쌍 확인
   - **도구 사용 한정 및 unityMCP 금지**: `GitManager`는 오직 **GitHub MCP 도구 및 표준 Git CLI 명령어**만 사용하며, **`unityMCP` 도구 호출은 엄격히 금지**합니다.
+  - **로컬 Changes 0개 절대 보장 (Zero-Dirty)**: `GitManager`는 작업 완료 시 반드시 로컬 워킹 트리에서 `git add`, `git commit`, `git push`를 완결하여, 사용자의 Changes 목록에 단 1개의 파일도 남지 않는 **`nothing to commit, working tree clean` 상태를 100% 보장**해야 합니다.
+
 
 
 ## 2. 주요 책임 및 실행 워크플로우 (이원화 의무)
