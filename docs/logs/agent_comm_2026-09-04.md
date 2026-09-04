@@ -17,3 +17,4 @@
 | 14:41:53 | QA | GitManager | QA 승인 | IDamageable 리팩토링 QA 4대 검수 통과, worklist [x] 완료 및 머지 대기 |
 | 15:23:00 | Developer | GitManager | PR 요청 | IDamageable 충돌 해결 및 C# 무결성 검증 완료, 신규 PR 요청 |
 | 15:23:49 | GitManager | QA | QA 검수 요청 | IDamageable 충돌 해결 신규 PR 생성 완료 (PR #11), QA 4대 검수 요청 |
+| 17:41:38 | System | GitManager | 규칙/문서 정리 | 작업 브랜치 생성 전 develop 최신 패치(fetch & pull) 의무화 규칙 반영 완료 |
