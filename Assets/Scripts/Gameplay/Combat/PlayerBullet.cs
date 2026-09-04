@@ -8,6 +8,7 @@ namespace Galaga.Gameplay.Combat
     /// <summary>
     /// 플레이어의 단일 발사체 탄환 컴포넌트입니다.
     /// 수직 상향 이동하며 화면 최상단(PlayAreaManager.MaxY) 이탈 또는 적 충돌 시 오브젝트 풀로 회수됩니다.
+    /// IDamageable 인터페이스를 통해 대상과의 결합도를 최소화합니다.
     /// </summary>
     [DisallowMultipleComponent]
     public class PlayerBullet : MonoBehaviour
@@ -121,13 +122,13 @@ namespace Galaga.Gameplay.Combat
                 return;
             }
 
-            // 적 충돌 판정 시 데미지 부여 및 풀 반환
+            // 적 충돌 판정 시 IDamageable 인터페이스를 통한 피격 처리 및 풀 반환
             if (collision.CompareTag("Enemy") || collision.name.Contains("Enemy"))
             {
-                EnemyBase enemy = collision.GetComponent<EnemyBase>();
-                if (enemy != null)
+                IDamageable damageable = collision.GetComponent<IDamageable>();
+                if (damageable != null)
                 {
-                    enemy.TakeDamage(_damage);
+                    damageable.TakeDamage(_damage);
                 }
                 ReturnToPool();
             }
@@ -148,10 +149,10 @@ namespace Galaga.Gameplay.Combat
 
             if (other.CompareTag("Enemy") || other.name.Contains("Enemy"))
             {
-                EnemyBase enemy = other.GetComponent<EnemyBase>();
-                if (enemy != null)
+                IDamageable damageable = other.GetComponent<IDamageable>();
+                if (damageable != null)
                 {
-                    enemy.TakeDamage(_damage);
+                    damageable.TakeDamage(_damage);
                 }
                 ReturnToPool();
             }

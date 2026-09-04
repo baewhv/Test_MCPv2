@@ -7,10 +7,11 @@ namespace Galaga.Gameplay.Enemy
 {
     /// <summary>
     /// 모든 적 기체의 기본 생명주기, 체력, 피격 플래시, 상태 머신 및 경로 추적 연동을 담당하는 베이스 컴포넌트입니다.
+    /// IDamageable 인터페이스를 구현하여 플레이어 발사체와의 결합도를 디커플링합니다.
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(BezierPathFollower))]
-    public class EnemyBase : MonoBehaviour
+    public class EnemyBase : MonoBehaviour, IDamageable
     {
         [Header("Data Configuration")]
         [Tooltip("적 기체 스펙 ScriptableObject")]
@@ -163,6 +164,14 @@ namespace Galaga.Gameplay.Enemy
                 TriggerFlash(targetBaseColor);
                 return false;
             }
+        }
+
+        /// <summary>
+        /// IDamageable 인터페이스 명시적 구현
+        /// </summary>
+        void IDamageable.TakeDamage(int damage)
+        {
+            TakeDamage(damage);
         }
 
         /// <summary>

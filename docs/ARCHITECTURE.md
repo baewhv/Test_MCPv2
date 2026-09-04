@@ -12,12 +12,12 @@
 | `PlayerController` (`PF_Player`) | `PlayAreaManager` | 직접 참조 / 메서드 호출 | `ClampPosition()`을 호출하여 화면 좌우 경계 밖 이탈 방지 |
 | `PlayerShooting` (`PF_Player`) | `PlayerBullet` (`PF_PlayerBullet`) | 오브젝트 풀 관리 / `TryFire()` | 화면 내 최대 2발(싱글) / 4발(듀얼) 발사 제한 및 인스턴스 활성화 |
 | `PlayerBullet` (`PF_PlayerBullet`) | `PlayAreaManager` | OnTriggerEnter2D / `CheckBoundary()` | 상단 경계 도달 시 `ReturnToPool()` 호출 |
-| `PlayerBullet` (`PF_PlayerBullet`) | `EnemyBase` (`PF_Enemy_*`) | OnTriggerEnter2D | `TakeDamage(1)` 호출 (HP 감소 및 0 이하 시 파괴) |
+| `PlayerBullet` (`PF_PlayerBullet`) | `IDamageable` (`PF_Enemy_*`) | OnTriggerEnter2D | `TakeDamage(1)` 호출 (인터페이스 기반 피격 및 풀 회수) |
 | `PlayerHealth` (`PF_Player`) | `EnemyBase` / `EnemyBullet` | OnTriggerEnter2D | 피격 감지 시 `TakeDamage(1)` 호출 (잔기 차감 및 리스폰) |
 | `EnemyDiveController` | `FormationGridManager` / `EnemyBase` | 직접 참조 / 상태 변경 | 대기 적 선별 후 3차 베지어 급강하(`EnemyState.Diving`) 궤적 생성 |
 | `EnemyDiveController` | `EnemyBase` (복귀) | 경로 완료 콜백 / 텔레포트 | 화면 하단 통과 시 상단 재진입 및 슬롯 복귀(`EnemyState.Returning` ➔ `EnterFormation`) |
 | `EnemyShooting` (`PF_Enemy_*`) | `EnemyBulletPool` / `PlayerTransform` | `OnProgressChanged` ($t=0.3\sim 0.6$) | 다이브 중간 구간에서 플레이어 현재 위치 조준 탄환 발사 |
-| `EnemyBullet` (`PF_EnemyBullet`) | `PlayerHealth` | OnTriggerEnter2D | 플레이어 충돌 시 `TakeDamage(1)` 호출 및 풀 회수 |
+| `EnemyBullet` (`PF_EnemyBullet`) | `IDamageable` (`PF_Player`) | OnTriggerEnter2D | `TakeDamage(1)` 호출 (인터페이스 기반 피격 및 풀 회수) |
 | `EnemyBullet` (`PF_EnemyBullet`) | `PlayAreaManager` | OnTriggerEnter2D / `CheckBoundary()` | 화면 하단 경계 이탈 시 자동 풀 반환 |
 | `ExplosionManager` | `ExplosionEffect` (`PF_Explosion`) | 오브젝트 풀 관리 / 이벤트 리스너 | 적 격파(`OnDestroyed`) 및 플레이어 사망 시 `SpawnExplosion()` 호출 |
 | `BezierPathFollower` | `BezierCurve` | 정적 수학 메서드 호출 | `EvaluatePath()`, `GetPathTangent()`로 위치/회전각 계산 |
@@ -30,10 +30,10 @@
 
 | 진영 / 오브젝트 | Layer | Tag | 충돌 대상 Layer (Physics2D Matrix) | 피격 판정 인터페이스 / 방식 |
 | :--- | :--- | :--- | :--- | :--- |
-| 플레이어 기체 (`PF_Player`) | `Player` | `Untagged` | `Enemy` (적 기체, 적 탄환, 트랙터 빔) | `PlayerHealth.TakeDamage(1)` |
+| 플레이어 기체 (`PF_Player`) | `Player` | `Untagged` | `Enemy` (적 기체, 적 탄환, 트랙터 빔) | `IDamageable` / `PlayerHealth.TakeDamage(1)` |
 | 플레이어 탄환 (`PF_PlayerBullet`) | `Player` | `Bullet` | `Enemy` (적 기체) | `IDamageable` / `EnemyBase.TakeDamage(1)` |
 | 적 기체 3종 (`PF_Enemy_*`) | `Enemy` | `Untagged` | `Player` (플레이어 탄환, 플레이어 기체) | `IDamageable` / `EnemyBase.TakeDamage(1)` |
-| 적 탄환 (`PF_EnemyBullet`) | `Enemy` | `Bullet` | `Player` (플레이어 기체) | `PlayerHealth.TakeDamage(1)` |
+| 적 탄환 (`PF_EnemyBullet`) | `Enemy` | `Bullet` | `Player` (플레이어 기체) | `IDamageable` / `PlayerHealth.TakeDamage(1)` |
 | 화면 외곽 경계벽 (4방향) | `Default` | `Boundary` | `Player`, `Enemy` | `isTrigger = true` (탄환 풀 회수 및 좌표 클램핑) |
 
 ---
@@ -108,8 +108,8 @@ graph TD
     Enemy -->|EnterFormation| GridMgr
     GridMgr -->|Update Position (Sine Wave)| Enemy
 
-    PlayerBullet -->|OnTriggerEnter2D: Damage| Enemy
-    EnemyBulletPool -->|OnTriggerEnter2D: Damage| PlayerHealth
+    PlayerBullet -->|OnTriggerEnter2D: IDamageable.TakeDamage| Enemy
+    EnemyBulletPool -->|OnTriggerEnter2D: IDamageable.TakeDamage| PlayerHealth
     Enemy -->|OnTriggerEnter2D: Collision| PlayerHealth
     Enemy -->|OnDestroyed| ExplosionMgr
     PlayerHealth -->|OnPlayerDied| ExplosionMgr

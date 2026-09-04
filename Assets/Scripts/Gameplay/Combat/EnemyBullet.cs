@@ -8,6 +8,7 @@ namespace Galaga.Gameplay.Combat
     /// <summary>
     /// 적 기체가 발사하는 탄환 컴포넌트입니다.
     /// 플레이어를 향해 직선 비행(기본 15~20 units/sec)하며, 화면 하단 이탈 또는 플레이어 충돌 시 풀로 회수됩니다.
+    /// IDamageable 인터페이스를 통해 플레이어와의 결합도를 디커플링합니다.
     /// </summary>
     [DisallowMultipleComponent]
     public class EnemyBullet : MonoBehaviour
@@ -119,13 +120,13 @@ namespace Galaga.Gameplay.Combat
                 return;
             }
 
-            // 플레이어와 충돌 시 피격 처리 및 풀 회수
+            // 플레이어와 충돌 시 IDamageable 인터페이스를 통한 피격 처리 및 풀 회수
             if (collision.CompareTag("Player") || collision.name.Contains("Player"))
             {
-                PlayerHealth playerHealth = collision.GetComponent<PlayerHealth>();
-                if (playerHealth != null)
+                IDamageable damageable = collision.GetComponent<IDamageable>();
+                if (damageable != null)
                 {
-                    playerHealth.TakeDamage(_damage);
+                    damageable.TakeDamage(_damage);
                 }
                 ReturnToPool();
                 return;
