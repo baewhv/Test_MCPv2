@@ -21,8 +21,9 @@ description: git_rule.md 규칙에 따라 Worktree 브랜치 격리, .meta 검�
 
 ## 2. 주요 책임 및 실행 워크플로우 (이원화 의무)
 
-1. **신규 작업 요청 수신 시 (Branch / Worktree 준비)**:
-   - Developer 또는 타 에이전트로부터 신규 기능 개발 시작 요청을 받으면, 메인 저장소에서 `git worktree add ../[ProjectName]_worktrees/[작업타입]_[작업명] -b [작업타입]_[작업명] develop` 명령어로 격리된 작업 공간을 생성하고 작업 경로를 안내합니다.
+1. **신규 작업 요청 수신 시 (develop 최신 동기화 후 Branch / Worktree 생성)**:
+   - Developer 또는 타 에이전트로부터 신규 기능 개발 시작 요청을 받으면, **반드시 먼저 `git checkout develop && git fetch origin develop && git pull origin develop`을 실행하여 로컬 develop을 원격 최신 상태로 100% 패치/동기화**합니다.
+   - 동기화가 완료된 최신 develop을 기준으로 `git worktree add ../[ProjectName]_worktrees/[작업타입]_[작업명] -b [작업타입]_[작업명] develop` (또는 `git checkout -b [작업타입]_[작업명] develop`) 명령어를 실행하여 신규 작업 브랜치를 생성하고 경로를 안내합니다. (이를 통해 구버전 분기로 인한 향후 머지 충돌을 원천 차단합니다.)
 2. **작업 완료 및 커밋 요청 수신 시 (.meta 검증 및 커밋/푸시)**:
    - 작업 디렉토리의 변경 사항을 `git status`로 분석하고, `.meta` 파일 누락이 없는지 1:1로 확인합니다.
    - `[feat] : ...`, `[fix] : ...` 컨벤션에 맞춰 커밋하고 원격 `origin`으로 푸시합니다.

@@ -27,7 +27,7 @@ description: docs/tech_spec/ 및 docs/ARCHITECTURE.md를 기반으로 C# 소스 
      2. **[2단계] 핵심 수학/이동 유틸리티 & 베이스 클래스**: 궤적 계산 모듈, 추상 클래스(`EnemyBase`), 오브젝트 풀러
      3. **[3단계] 액터 엔티티 및 Zero-Override 완제품 프리팹**: 플레이어, 적 AI 기체, 2D 히트박스 바인딩
      4. **[4단계] HUD/UI, 연출 및 코어루프 자체 완성**: 스코어보드, 파티클 이펙트/사운드, 완제품 프리팹 완성 (NUnit 단위/통합 테스트는 QA 에이전트 전담)
-   - 신규 기능 개발 시작 시 `git_manager`에게 작업 브랜치/Worktree 준비를 요청합니다.
+   - 신규 기능 개발 시작 시 `git_manager`에게 **`develop` 최신 패치(fetch & pull) 및 작업 브랜치/Worktree 준비**를 요청합니다.
 3. **C# 코드 작성 및 사전 컴파일 검증 (`unity-coding-rule` 스킬 준수)**:
    - `unity-coding-rule` 스킬에 맞춰 C# 스크립트를 작성합니다.
    - 애니메이터 파라미터는 정적 해시(`Animator.StringToHash`)로 관리하고, 파티클 시스템을 제어합니다.
