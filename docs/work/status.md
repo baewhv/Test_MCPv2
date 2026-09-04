@@ -1,7 +1,7 @@
 # 개발 및 기획 진행 상태 (Status)
 
 ## [현재 상태]
-- [Designer] 기획 분석 완료 및 코어루프 조건 달성 ➔ Developer 작업 진행 가능
+- [GitManager] [PlayAreaManager 분리] PR 생성 완료 (PR #9) ➔ qa에게 검수 인계
 
 > **[현재 상태 표준 전이 규격 안내]**
 > - **1. 기획 완료**: `[Designer] 기획 분석 완료 및 코어루프 조건 달성 ➔ Developer 작업 진행 가능` *(미달 시: `[Designer] 코어루프 조건 미달성 (기획 보완 대기)`)*
