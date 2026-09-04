@@ -3,21 +3,27 @@ using UnityEngine;
 namespace Galaga.Core
 {
     /// <summary>
-    /// 3:4 아케이드 비율(224x288) 기준 플레이 영역 경계 및 카메라 뷰포트를 관리하는 코어 컴포넌트입니다.
+    /// 3:4 아케이드 비율(224x288) 기준 플레이 영역 경계 및 카메라 뷰포트를 관리하는 독립 코어 매니저입니다.
+    /// 카메라 컴포넌트로부터 분리되어 독립 게임오브젝트로 동작하며, 지정된 Target Camera의 뷰포트와 경계를 동기화합니다.
     /// </summary>
-    [RequireComponent(typeof(Camera))]
     [DisallowMultipleComponent]
     public class PlayAreaManager : MonoBehaviour
     {
+        public static PlayAreaManager Instance { get; private set; }
+
+        [Header("Target Camera Binding")]
+        [Tooltip("플레이 영역 및 뷰포트를 적용할 타겟 카메라 (미지정 시 Camera.main으로 자동 폴백)")]
+        [SerializeField] private Camera _targetCamera;
+
         [Header("Target Resolution & Aspect Ratio")]
-        [Tooltip("기준 해상도 가로 픽셀")]
+        [Tooltip("기준 해상도 가로 픽셀 (224px)")]
         [SerializeField] private float _targetWidth = 224f;
 
-        [Tooltip("기준 해상도 세로 픽셀")]
+        [Tooltip("기준 해상도 세로 픽셀 (288px)")]
         [SerializeField] private float _targetHeight = 288f;
 
         [Header("Camera & World Size Settings")]
-        [Tooltip("월드 좌표계 기준 플레이 영역 세로 절반 크기 (Orthographic Size)")]
+        [Tooltip("월드 좌표계 기준 플레이 영역 세로 절반 크기 (Orthographic Size = 10u)")]
         [SerializeField] private float _orthographicSize = 10f;
 
         [Header("Boundary Colliders")]
@@ -30,9 +36,17 @@ namespace Galaga.Core
         [Tooltip("경계 충돌체 레이어")]
         [SerializeField] private string _boundaryLayerName = "Default";
 
-        private Camera _targetCamera;
         private Rect _worldPlayBounds;
 
+        public Camera TargetCamera
+        {
+            get => _targetCamera;
+            set => _targetCamera = value;
+        }
+
+        public float TargetWidth => _targetWidth;
+        public float TargetHeight => _targetHeight;
+        public float OrthographicSize => _orthographicSize;
         public float TargetAspectRatio => _targetWidth / _targetHeight;
         public Rect WorldPlayBounds => _worldPlayBounds;
         public float MinX => _worldPlayBounds.xMin;
@@ -44,12 +58,29 @@ namespace Galaga.Core
 
         private void Awake()
         {
-            _targetCamera = GetComponent<Camera>();
+            if (Instance == null)
+            {
+                Instance = this;
+            }
+
+            if (_targetCamera == null)
+            {
+                _targetCamera = Camera.main;
+            }
+
             RecalculateBounds();
 
             if (_generateBoundaryColliders)
             {
                 CreateBoundaryColliders();
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
             }
         }
 
@@ -60,11 +91,20 @@ namespace Galaga.Core
         {
             if (_targetCamera == null)
             {
-                _targetCamera = GetComponent<Camera>();
+                _targetCamera = Camera.main;
             }
 
             if (_targetCamera == null)
             {
+                // 타겟 카메라가 없을 경우 기본 0,0 원점 기준 월드 바운드 계산
+                float fallbackHeight = _orthographicSize * 2f;
+                float fallbackWidth = fallbackHeight * TargetAspectRatio;
+                _worldPlayBounds = new Rect(
+                    -(fallbackWidth * 0.5f),
+                    -(fallbackHeight * 0.5f),
+                    fallbackWidth,
+                    fallbackHeight
+                );
                 return;
             }
 
@@ -110,7 +150,7 @@ namespace Galaga.Core
         }
 
         /// <summary>
-        /// 주어진 좌표를 플레이 영역 좌우 경계 내로 제한합니다.
+        /// 주어진 좌표를 플레이 영역 좌우/상하 경계 내로 제한합니다.
         /// </summary>
         public Vector2 ClampPosition(Vector2 position, float halfWidth = 0f, float halfHeight = 0f)
         {
@@ -130,12 +170,28 @@ namespace Galaga.Core
                    position.y > (MaxY + margin);
         }
 
-        private void CreateBoundaryColliders()
+        /// <summary>
+        /// 화면 4방향 외곽에 "Boundary" 태그를 가진 박스 트리거 콜라이더를 생성합니다.
+        /// </summary>
+        public void CreateBoundaryColliders()
         {
             int layer = LayerMask.NameToLayer(_boundaryLayerName);
             if (layer < 0)
             {
                 layer = 0;
+            }
+
+            Transform existing = transform.Find("BoundaryColliders");
+            if (existing != null)
+            {
+                if (Application.isPlaying)
+                {
+                    Destroy(existing.gameObject);
+                }
+                else
+                {
+                    DestroyImmediate(existing.gameObject);
+                }
             }
 
             GameObject borderRoot = new GameObject("BoundaryColliders");
@@ -171,6 +227,7 @@ namespace Galaga.Core
         {
             GameObject borderObj = new GameObject(name);
             borderObj.layer = layer;
+            borderObj.tag = "Boundary";
             borderObj.transform.SetParent(parent.transform);
             borderObj.transform.position = new Vector3(worldPos.x, worldPos.y, 0f);
 

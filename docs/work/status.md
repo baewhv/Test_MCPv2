@@ -1,4 +1,4 @@
-﻿# 개발 및 기획 진행 상태 (Status)
+# 개발 및 기획 진행 상태 (Status)
 
 ## [현재 상태]
 - [QA] [IDamageable 리팩토링] QA 4대 검수 통과 및 worklist [x] 완료 ➔ 사용자 최종 Merge 대기

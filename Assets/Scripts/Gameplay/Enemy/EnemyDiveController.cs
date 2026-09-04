@@ -7,56 +7,54 @@ using Galaga.Core;
 namespace Galaga.Gameplay.Enemy
 {
     /// <summary>
-    /// 편대 안착 상태(Formation)의 적 기체를 주기적으로 선별하여 단독 또는 보스+호위기 동반 급강하(Diving Attack)를 트리거하고,
-    /// 화면 하단 이탈 후 상단 재진입 복귀(Return to Formation) 궤적을 제어하는 AI 매니저 컴포넌트입니다.
+    /// 상단 그리드에 대기 중인 적들의 주기적 급강하(Diving Attack)를 관리하는 컨트롤러입니다.
+    /// 단독 다이브, 호위 편대 다이브(보스 1기 + 고에이 1~2기), 플레이어 예측 조준 및 화면 하단 루프 복귀를 제어합니다.
     /// </summary>
     [DisallowMultipleComponent]
     public class EnemyDiveController : MonoBehaviour
     {
-        [Header("Manager References")]
+        [Header("References")]
         [Tooltip("편대 그리드 매니저 참조")]
         [SerializeField] private FormationGridManager _gridManager;
 
-        [Tooltip("플레이어 위치 참조 (조준 및 예측 궤적 계산용)")]
+        [Tooltip("플레이어 기체 Transform (예측 궤적 계산용)")]
         [SerializeField] private Transform _playerTransform;
 
-        [Tooltip("플레이 영역 경계 매니저 참조")]
+        [Tooltip("플레이 영역 매니저 (화면 외곽 좌표 계산용)")]
         [SerializeField] private PlayAreaManager _playAreaManager;
 
-        [Header("Dive Settings")]
-        [Tooltip("급강하 공격 주기 간격(초)")]
-        [SerializeField] private float _diveInterval = 2.5f;
+        [Header("Dive Timing Settings")]
+        [Tooltip("다이브 발생 주기 (초)")]
+        [SerializeField] private float _diveInterval = 3.0f;
 
-        [Tooltip("급강하 비행 속도 (units/sec)")]
+        [Tooltip("다이브 비행 속도 (units/sec)")]
         [SerializeField] private float _diveSpeed = 11.0f;
 
-        [Tooltip("복귀 비행 속도 (units/sec)")]
+        [Tooltip("하단 통과 후 상단 루프 복귀 비행 속도 (units/sec)")]
         [SerializeField] private float _returnSpeed = 10.0f;
 
-        [Tooltip("동시 다이브 가능한 최대 적 기체 수")]
+        [Tooltip("동시 다이브 최대 적 기체 수")]
         [SerializeField] private int _maxConcurrentDives = 4;
 
-        [Tooltip("플레이어 이동 예측 리드 타임 (초)")]
+        [Tooltip("플레이어 이동 예측 시간 가중치 (초)")]
         [SerializeField] private float _playerLeadTime = 0.25f;
 
-        [Tooltip("주기적 자동 급강하 활성화 여부")]
-        [SerializeField] private bool _autoDiveEnabled = false;
+        [Tooltip("게임 시작 시 자동 다이브 실행 여부")]
+        [SerializeField] private bool _autoDiveEnabled = true;
 
-        [Header("Boundary Y Coordinates")]
-        [Tooltip("다이브 종점 화면 하단 Y좌표")]
+        [Header("Loop Boundaries")]
+        [Tooltip("화면 하단 이탈 Y좌표 (이 좌표 통과 시 상단 복귀 비행 시작)")]
         [SerializeField] private float _screenBottomY = -11.0f;
 
-        [Tooltip("복귀 시작 화면 상단 재진입 Y좌표")]
-        [SerializeField] private float _screenTopY = 11.0f;
+        [Tooltip("화면 상단 재진입 Y좌표")]
+        [SerializeField] private float _screenTopReentryY = 11.0f;
 
-        private readonly List<EnemyBase> _divingEnemies = new List<EnemyBase>();
+        private List<EnemyBase> _activeDivingEnemies = new List<EnemyBase>();
         private Coroutine _diveLoopCoroutine;
-        private Vector3 _lastPlayerPos;
-        private Vector3 _playerVelocity;
+        private Vector3 _lastPlayerPos = new Vector3(0f, -8f, 0f);
 
         public event Action<EnemyBase> OnDiveStarted;
         public event Action<EnemyBase> OnDiveCompleted;
-        public event Action<EnemyBase> OnReturnStarted;
 
         public FormationGridManager GridManager
         {
@@ -79,57 +77,46 @@ namespace Galaga.Gameplay.Enemy
         public float DiveInterval
         {
             get => _diveInterval;
-            set => _diveInterval = Mathf.Max(0.5f, value);
+            set => _diveInterval = value;
         }
 
         public float DiveSpeed
         {
             get => _diveSpeed;
-            set => _diveSpeed = Mathf.Max(1f, value);
+            set => _diveSpeed = value;
         }
 
         public float ReturnSpeed
         {
             get => _returnSpeed;
-            set => _returnSpeed = Mathf.Max(1f, value);
+            set => _returnSpeed = value;
         }
 
         public int MaxConcurrentDives
         {
             get => _maxConcurrentDives;
-            set => _maxConcurrentDives = Mathf.Max(1, value);
+            set => _maxConcurrentDives = value;
         }
 
         public bool AutoDiveEnabled
         {
             get => _autoDiveEnabled;
-            set
-            {
-                _autoDiveEnabled = value;
-                if (_autoDiveEnabled)
-                {
-                    StartAutoDive();
-                }
-                else
-                {
-                    StopAutoDive();
-                }
-            }
+            set => _autoDiveEnabled = value;
         }
 
-        public IReadOnlyList<EnemyBase> DivingEnemies => _divingEnemies;
-        public int ActiveDiveCount => _divingEnemies.Count;
+        public int ActiveDivingCount => _activeDivingEnemies.Count;
 
-        private void Awake()
+        private void Start()
         {
             if (_gridManager == null)
             {
                 _gridManager = GetComponent<FormationGridManager>();
+                if (_gridManager == null)
+                {
+                    _gridManager = FindAnyObjectByType<FormationGridManager>();
+                }
             }
-        }
 
-        private void Start()
-        {
             if (_playerTransform == null)
             {
                 GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
@@ -139,6 +126,10 @@ namespace Galaga.Gameplay.Enemy
                 }
             }
 
+            if (_playAreaManager == null)
+            {
+                _playAreaManager = PlayAreaManager.Instance;
+            }
             if (_playAreaManager == null && Camera.main != null)
             {
                 _playAreaManager = Camera.main.GetComponent<PlayAreaManager>();
@@ -155,48 +146,28 @@ namespace Galaga.Gameplay.Enemy
             }
         }
 
-        private void Update()
-        {
-            UpdatePlayerVelocity();
-        }
-
         private void OnDisable()
         {
             StopAutoDive();
         }
 
-        private void UpdatePlayerVelocity()
-        {
-            if (_playerTransform != null)
-            {
-                Vector3 currentPos = _playerTransform.position;
-                if (Time.deltaTime > 0.0001f)
-                {
-                    _playerVelocity = (currentPos - _lastPlayerPos) / Time.deltaTime;
-                }
-                _lastPlayerPos = currentPos;
-            }
-        }
-
         /// <summary>
-        /// 자동 급강하 루프를 시작합니다.
+        /// 주기적 자동 다이브 코루틴을 시작합니다.
         /// </summary>
         public void StartAutoDive()
         {
-            _autoDiveEnabled = true;
             if (_diveLoopCoroutine != null)
             {
                 StopCoroutine(_diveLoopCoroutine);
             }
-            _diveLoopCoroutine = StartCoroutine(AutoDiveRoutine());
+            _diveLoopCoroutine = StartCoroutine(DiveLoopRoutine());
         }
 
         /// <summary>
-        /// 자동 급강하 루프를 중단합니다.
+        /// 자동 다이브 코루틴을 정지합니다.
         /// </summary>
         public void StopAutoDive()
         {
-            _autoDiveEnabled = false;
             if (_diveLoopCoroutine != null)
             {
                 StopCoroutine(_diveLoopCoroutine);
@@ -204,13 +175,13 @@ namespace Galaga.Gameplay.Enemy
             }
         }
 
-        private IEnumerator AutoDiveRoutine()
+        private IEnumerator DiveLoopRoutine()
         {
-            while (_autoDiveEnabled)
+            while (true)
             {
                 yield return new WaitForSeconds(_diveInterval);
 
-                if (_divingEnemies.Count < _maxConcurrentDives)
+                if (_activeDivingEnemies.Count < _maxConcurrentDives)
                 {
                     TriggerRandomDive();
                 }
@@ -218,341 +189,274 @@ namespace Galaga.Gameplay.Enemy
         }
 
         /// <summary>
-        /// 편대에 대기 중인 적 중에서 무작위로 1기(또는 보스+호위 편대)를 선택하여 급강하를 시작합니다.
+        /// 대기 중인 적 중에서 무작위로 단독 또는 호위 편대 다이브를 선별하여 발동합니다.
         /// </summary>
-        public bool TriggerRandomDive()
+        public void TriggerRandomDive()
         {
-            if (_gridManager == null || _gridManager.Slots == null)
+            if (_gridManager == null)
             {
-                return false;
+                return;
             }
 
-            // 편대 상태인 적 후보 수집
-            List<FormationSlot> availableSlots = new List<FormationSlot>();
-            for (int i = 0; i < _gridManager.Slots.Count; i++)
+            List<EnemyBase> candidateEnemies = GetEligibleFormationEnemies();
+            if (candidateEnemies.Count == 0)
             {
-                FormationSlot slot = _gridManager.Slots[i];
-                if (slot != null && slot.IsOccupied && slot.Occupant != null)
-                {
-                    if (slot.Occupant.CurrentState == EnemyState.Formation && !_divingEnemies.Contains(slot.Occupant))
-                    {
-                        availableSlots.Add(slot);
-                    }
-                }
+                return;
             }
 
-            if (availableSlots.Count == 0)
+            // 보스 기체가 있고 호위기가 존재할 확률 검사 (호위 편대 다이브)
+            EnemyBase bossCandidate = candidateEnemies.Find(e => e.EnemyType == EnemyType.Boss);
+            if (bossCandidate != null && UnityEngine.Random.value < 0.4f)
             {
-                return false;
+                TriggerBossEscortDive(bossCandidate, candidateEnemies);
+                return;
             }
 
-            FormationSlot chosenSlot = availableSlots[UnityEngine.Random.Range(0, availableSlots.Count)];
-            EnemyBase leader = chosenSlot.Occupant;
-
-            List<EnemyBase> escorts = null;
-            if (leader.Type == EnemyType.BossGalaga)
-            {
-                escorts = FindAvailableEscortsForBoss(leader, UnityEngine.Random.Range(1, 3));
-            }
-
-            return TriggerDive(leader, escorts);
+            // 단독 다이브 발동
+            EnemyBase selectedEnemy = candidateEnemies[UnityEngine.Random.Range(0, candidateEnemies.Count)];
+            LaunchSingleDive(selectedEnemy);
         }
 
         /// <summary>
-        /// 특정 적 리더(및 선택적 호위기)의 급강하 공격을 트리거합니다.
+        /// 단일 적 기체의 급강하 궤적을 생성하고 비행을 시작합니다.
         /// </summary>
-        public bool TriggerDive(EnemyBase leader, List<EnemyBase> escorts = null)
+        public void LaunchSingleDive(EnemyBase enemy)
         {
-            if (leader == null || leader.IsDead || leader.CurrentState != EnemyState.Formation)
+            if (enemy == null || enemy.CurrentState != EnemyState.Formation)
             {
-                return false;
+                return;
             }
 
-            Vector2 playerTarget = GetPredictedPlayerPosition();
-            Vector2 leaderStartPos = leader.transform.position;
+            Vector3 startPos = enemy.transform.position;
+            Vector3 targetPos = GetPredictedPlayerPosition();
 
-            // 리더 다이브 시작
-            StartSingleDive(leader, leaderStartPos, playerTarget);
+            // 3차 베지어 급강하 경로 2개 생성 (강하 -> 하단 통과)
+            BezierPath divePath = GenerateDiveBezierPath(startPos, targetPos);
 
-            // 호위기 다이브 시작
-            if (escorts != null && escorts.Count > 0)
-            {
-                for (int i = 0; i < escorts.Count; i++)
-                {
-                    EnemyBase escort = escorts[i];
-                    if (escort != null && !escort.IsDead && escort.CurrentState == EnemyState.Formation)
-                    {
-                        float xOffset = (i == 0) ? -1.2f : 1.2f;
-                        Vector2 offset = new Vector2(xOffset, 0.6f);
-                        StartEscortDive(escort, escort.transform.position, leaderStartPos, playerTarget, offset);
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        private void StartSingleDive(EnemyBase enemy, Vector2 startPos, Vector2 playerTarget)
-        {
-            _divingEnemies.Add(enemy);
             enemy.SetState(EnemyState.Diving);
+            _activeDivingEnemies.Add(enemy);
 
-            BezierSegment[] divePath = CreateSingleDiveTrajectory(startPos, playerTarget, _screenBottomY);
-            BezierPathFollower follower = enemy.PathFollower;
-
+            BezierPathFollower follower = enemy.GetComponent<BezierPathFollower>();
             if (follower != null)
             {
-                float speed = enemy.Data != null ? enemy.Data.MoveSpeed * 1.1f : _diveSpeed;
-                follower.SetPath(divePath, speed, loop: false);
-                follower.RotateAlongPath = true;
-                follower.RotationOffset = -90f;
-
-                Action onComplete = null;
-                onComplete = () =>
-                {
-                    follower.OnPathCompleted -= onComplete;
-                    HandleEnemyReachedBottom(enemy);
-                };
-
-                follower.OnPathCompleted += onComplete;
-                follower.Play();
+                follower.FollowPath(divePath, _diveSpeed, () => OnDivePathCompleted(enemy));
             }
 
             OnDiveStarted?.Invoke(enemy);
         }
 
-        private void StartEscortDive(EnemyBase escort, Vector2 startPos, Vector2 bossStartPos, Vector2 playerTarget, Vector2 offset)
+        /// <summary>
+        /// 보스 갤러그와 고에이 1~2기가 동반 급강하하는 호위 편대 다이브를 개시합니다.
+        /// </summary>
+        public void TriggerBossEscortDive(EnemyBase boss, List<EnemyBase> candidates)
         {
-            _divingEnemies.Add(escort);
-            escort.SetState(EnemyState.Diving);
-
-            BezierSegment[] escortPath = CreateEscortDiveTrajectory(startPos, bossStartPos, playerTarget, offset, _screenBottomY);
-            BezierPathFollower follower = escort.PathFollower;
-
-            if (follower != null)
+            if (boss == null || boss.CurrentState != EnemyState.Formation)
             {
-                float speed = escort.Data != null ? escort.Data.MoveSpeed * 1.1f : _diveSpeed;
-                follower.SetPath(escortPath, speed, loop: false);
-                follower.RotateAlongPath = true;
-                follower.RotationOffset = -90f;
-
-                Action onComplete = null;
-                onComplete = () =>
-                {
-                    follower.OnPathCompleted -= onComplete;
-                    HandleEnemyReachedBottom(escort);
-                };
-
-                follower.OnPathCompleted += onComplete;
-                follower.Play();
-            }
-
-            OnDiveStarted?.Invoke(escort);
-        }
-
-        private void HandleEnemyReachedBottom(EnemyBase enemy)
-        {
-            if (enemy == null || enemy.IsDead)
-            {
-                _divingEnemies.Remove(enemy);
                 return;
             }
 
-            // 화면 상단으로 재진입하여 소속 슬롯으로 복귀
-            enemy.SetState(EnemyState.Returning);
-            OnReturnStarted?.Invoke(enemy);
+            List<EnemyBase> goeiList = candidates.FindAll(e => e.EnemyType == EnemyType.Goei && e.CurrentState == EnemyState.Formation);
+            int escortCount = Mathf.Min(goeiList.Count, UnityEngine.Random.Range(1, 3));
 
-            FormationSlot slot = FindSlotForEnemy(enemy);
-            Vector2 targetSlotPos = slot != null ? slot.CurrentWorldPosition : new Vector2(0f, 6f);
+            Vector3 targetPos = GetPredictedPlayerPosition();
+            BezierPath bossPath = GenerateDiveBezierPath(boss.transform.position, targetPos);
 
-            // 상단 재진입 시작 좌표 계산
-            float entryX = Mathf.Clamp(enemy.transform.position.x, -4f, 4f);
-            Vector2 entryPos = new Vector2(entryX, _screenTopY);
+            boss.SetState(EnemyState.Diving);
+            _activeDivingEnemies.Add(boss);
 
-            // 위치를 화면 상단으로 텔레포트
-            enemy.transform.position = new Vector3(entryPos.x, entryPos.y, enemy.transform.position.z);
-
-            BezierSegment[] returnPath = CreateReturnTrajectory(entryPos, targetSlotPos);
-            BezierPathFollower follower = enemy.PathFollower;
-
-            if (follower != null)
+            BezierPathFollower bossFollower = boss.GetComponent<BezierPathFollower>();
+            if (bossFollower != null)
             {
-                follower.SetPath(returnPath, _returnSpeed, loop: false);
-                follower.RotateAlongPath = true;
-                follower.RotationOffset = -90f;
-
-                Action onReturnComplete = null;
-                onReturnComplete = () =>
-                {
-                    follower.OnPathCompleted -= onReturnComplete;
-                    _divingEnemies.Remove(enemy);
-                    enemy.EnterFormation();
-                    OnDiveCompleted?.Invoke(enemy);
-                };
-
-                follower.OnPathCompleted += onReturnComplete;
-                follower.Play();
+                bossFollower.FollowPath(bossPath, _diveSpeed, () => OnDivePathCompleted(boss));
             }
-            else
+            OnDiveStarted?.Invoke(boss);
+
+            // 호위기 동반 발진 (보스 좌우 오프셋 궤적)
+            for (int i = 0; i < escortCount; i++)
             {
-                _divingEnemies.Remove(enemy);
-                enemy.EnterFormation();
-                OnDiveCompleted?.Invoke(enemy);
+                EnemyBase escort = goeiList[i];
+                float sideOffset = (i == 0) ? -1.2f : 1.2f;
+                Vector3 escortTarget = targetPos + new Vector3(sideOffset, 0f, 0f);
+
+                BezierPath escortPath = GenerateDiveBezierPath(escort.transform.position, escortTarget, sideOffset);
+
+                escort.SetState(EnemyState.Diving);
+                _activeDivingEnemies.Add(escort);
+
+                BezierPathFollower escortFollower = escort.GetComponent<BezierPathFollower>();
+                if (escortFollower != null)
+                {
+                    escortFollower.FollowPath(escortPath, _diveSpeed, () => OnDivePathCompleted(escort));
+                }
+                OnDiveStarted?.Invoke(escort);
             }
         }
 
-        private FormationSlot FindSlotForEnemy(EnemyBase enemy)
+        private void OnDivePathCompleted(EnemyBase enemy)
         {
-            if (_gridManager == null || _gridManager.Slots == null)
+            if (enemy == null || enemy.CurrentState == EnemyState.Dead)
             {
-                return null;
+                _activeDivingEnemies.Remove(enemy);
+                return;
             }
 
-            for (int i = 0; i < _gridManager.Slots.Count; i++)
-            {
-                FormationSlot slot = _gridManager.Slots[i];
-                if (slot != null && slot.Occupant == enemy)
-                {
-                    return slot;
-                }
-            }
-            return null;
+            // 화면 하단 도달 시 상단 재진입 루프 복귀 경로 실행
+            LaunchReturnToFormation(enemy);
         }
 
         /// <summary>
-        /// 보스 기체와 인접한 행/열에서 대기 중인 고에이(Goei) 호위기를 탐색합니다.
+        /// 화면 하단을 통과한 적을 상단($Y=+11$)으로 재배치하고 원래 슬롯으로 복귀하는 궤적을 실행합니다.
         /// </summary>
-        public List<EnemyBase> FindAvailableEscortsForBoss(EnemyBase boss, int maxCount = 2)
+        public void LaunchReturnToFormation(EnemyBase enemy)
         {
-            List<EnemyBase> escorts = new List<EnemyBase>();
-            if (_gridManager == null || _gridManager.Slots == null || boss == null)
+            if (enemy == null || enemy.CurrentState == EnemyState.Dead)
             {
-                return escorts;
+                _activeDivingEnemies.Remove(enemy);
+                return;
             }
 
-            FormationSlot bossSlot = FindSlotForEnemy(boss);
-            int bossCol = bossSlot != null ? bossSlot.ColumnIndex : 2;
+            enemy.SetState(EnemyState.Returning);
 
-            // 고에이 행(Row 1, Row 2)에서 보스 열과 가까운 고에이 우선 선택
-            List<FormationSlot> goeiSlots = new List<FormationSlot>();
-            for (int i = 0; i < _gridManager.Slots.Count; i++)
+            // 화면 상단 재진입 위치 설정
+            float reentryX = Mathf.Clamp(enemy.transform.position.x, -6.0f, 6.0f);
+            enemy.transform.position = new Vector3(reentryX, _screenTopReentryY, 0f);
+
+            Vector3 targetSlotPos = enemy.SlotAnchorPosition;
+            if (_gridManager != null && enemy.AssignedSlot != null)
             {
-                FormationSlot s = _gridManager.Slots[i];
-                if (s != null && s.IsOccupied && s.Occupant != null && s.AssignedType == EnemyType.Goei)
+                targetSlotPos = enemy.AssignedSlot.WorldPosition;
+            }
+
+            BezierPath returnPath = GenerateReturnBezierPath(enemy.transform.position, targetSlotPos);
+
+            BezierPathFollower follower = enemy.GetComponent<BezierPathFollower>();
+            if (follower != null)
+            {
+                follower.FollowPath(returnPath, _returnSpeed, () => OnReturnCompleted(enemy));
+            }
+        }
+
+        private void OnReturnCompleted(EnemyBase enemy)
+        {
+            if (enemy == null || enemy.CurrentState == EnemyState.Dead)
+            {
+                _activeDivingEnemies.Remove(enemy);
+                return;
+            }
+
+            _activeDivingEnemies.Remove(enemy);
+            enemy.EnterFormation();
+            OnDiveCompleted?.Invoke(enemy);
+        }
+
+        /// <summary>
+        /// 대기 상태(Formation)이며 살아있는 적 기체 목록을 반환합니다.
+        /// </summary>
+        public List<EnemyBase> GetEligibleFormationEnemies()
+        {
+            List<EnemyBase> result = new List<EnemyBase>();
+            if (_gridManager == null)
+            {
+                return result;
+            }
+
+            FormationSlot[] slots = _gridManager.GetAllSlots();
+            if (slots == null)
+            {
+                return result;
+            }
+
+            for (int i = 0; i < slots.Length; i++)
+            {
+                if (slots[i] != null && slots[i].IsOccupied && slots[i].Occupant != null)
                 {
-                    if (s.Occupant.CurrentState == EnemyState.Formation && !_divingEnemies.Contains(s.Occupant))
+                    EnemyBase enemy = slots[i].Occupant;
+                    if (enemy.CurrentState == EnemyState.Formation && enemy.IsAlive)
                     {
-                        goeiSlots.Add(s);
+                        result.Add(enemy);
                     }
                 }
             }
 
-            // 보스 열과의 거리를 기준으로 정렬
-            goeiSlots.Sort((a, b) => Mathf.Abs(a.ColumnIndex - bossCol).CompareTo(Mathf.Abs(b.ColumnIndex - bossCol)));
-
-            for (int i = 0; i < goeiSlots.Count && escorts.Count < maxCount; i++)
-            {
-                escorts.Add(goeiSlots[i].Occupant);
-            }
-
-            return escorts;
+            return result;
         }
 
-        private Vector2 GetPredictedPlayerPosition()
+        /// <summary>
+        /// 플레이어 기체의 현재 위치 및 속도를 기반으로 예측된 조준 좌표를 계산합니다.
+        /// </summary>
+        public Vector3 GetPredictedPlayerPosition()
         {
             if (_playerTransform == null)
             {
-                return new Vector2(0f, -8f);
+                return new Vector3(0f, -8.0f, 0f);
             }
 
-            Vector2 playerPos = _playerTransform.position;
-            float predictedX = playerPos.x + (_playerVelocity.x * _playerLeadTime);
+            Vector3 currentPos = _playerTransform.position;
+            Vector3 velocity = (currentPos - _lastPlayerPos) / Mathf.Max(Time.deltaTime, 0.001f);
+            _lastPlayerPos = currentPos;
+
+            Vector3 predictedPos = currentPos + velocity * _playerLeadTime;
+            predictedPos.y = -8.0f; // Y좌표는 항상 플레이어 라인 고정
 
             if (_playAreaManager != null)
             {
-                predictedX = Mathf.Clamp(predictedX, _playAreaManager.MinX + 0.5f, _playAreaManager.MaxX - 0.5f);
+                predictedPos.x = Mathf.Clamp(predictedPos.x, _playAreaManager.MinX + 0.5f, _playAreaManager.MaxX - 0.5f);
             }
             else
             {
-                predictedX = Mathf.Clamp(predictedX, -5.5f, 5.5f);
+                predictedPos.x = Mathf.Clamp(predictedPos.x, -7.0f, 7.0f);
             }
 
-            return new Vector2(predictedX, playerPos.y);
+            return predictedPos;
         }
 
         /// <summary>
-        /// 단독 적 기체의 급강하 3차 베지어 궤적(2개 세그먼트)을 생성합니다.
+        /// 시작점에서 목표 플레이어 위치를 향해 루프 비행하며 화면 하단으로 빠져나가는 3차 베지어 경로를 생성합니다.
         /// </summary>
-        public static BezierSegment[] CreateSingleDiveTrajectory(Vector2 startPos, Vector2 targetPlayerPos, float screenBottomY = -11.0f)
+        public BezierPath GenerateDiveBezierPath(Vector3 start, Vector3 target, float horizontalBias = 0f)
         {
-            // 1단계: 편대에서 이탈하여 외곽으로 호를 그리며 중간 높이 도달
-            float outwardDir = (startPos.x >= 0f) ? 1f : -1f;
-            if (Mathf.Abs(startPos.x) < 0.5f)
-            {
-                outwardDir = (targetPlayerPos.x >= 0f) ? 1f : -1f;
-            }
+            BezierPath path = new BezierPath();
 
-            Vector2 p0 = startPos;
-            Vector2 p1 = startPos + new Vector2(outwardDir * 2.5f, 1.0f);
-            Vector2 p2 = new Vector2(startPos.x + (outwardDir * 3.5f), 1.0f);
-            Vector2 midPoint = new Vector2(startPos.x + (outwardDir * 1.5f), 0.0f);
-            BezierSegment seg1 = new BezierSegment(p0, p1, p2, midPoint);
+            // 곡선 1: 그리드 이탈 및 급선회 루프 (Start -> Swoop)
+            float sign = (start.x > target.x) ? -1f : 1f;
+            Vector3 p0 = start;
+            Vector3 p1 = start + new Vector3(sign * 2.0f + horizontalBias, 2.0f, 0f);
+            Vector3 p2 = start + new Vector3(sign * 4.0f + horizontalBias, -3.0f, 0f);
+            Vector3 p3 = new Vector3((start.x + target.x) * 0.5f + horizontalBias, 0f, 0f);
+            path.AddSegment(new BezierSegment(p0, p1, p2, p3));
 
-            // 2단계: 중간 지점에서 플레이어 예측 위치를 향해 급강하하여 화면 하단 통과
-            Vector2 p3 = midPoint;
-            Vector2 p4 = new Vector2(midPoint.x - (outwardDir * 1.5f), -3.0f);
-            Vector2 p5 = new Vector2(targetPlayerPos.x, targetPlayerPos.y + 2.0f);
-            Vector2 endPoint = new Vector2(targetPlayerPos.x, screenBottomY);
-            BezierSegment seg2 = new BezierSegment(p3, p4, p5, endPoint);
+            // 곡선 2: 플레이어 조준 강하 및 화면 하단 통과 (Swoop -> Player Dive -> Bottom Exit)
+            Vector3 q0 = p3;
+            Vector3 q1 = target + new Vector3(-sign * 1.5f + horizontalBias, 4.0f, 0f);
+            Vector3 q2 = target + new Vector3(0f, 1.0f, 0f);
+            Vector3 q3 = new Vector3(target.x + sign * 2.5f + horizontalBias, _screenBottomY, 0f);
+            path.AddSegment(new BezierSegment(q0, q1, q2, q3));
 
-            return new BezierSegment[] { seg1, seg2 };
+            return path;
         }
 
         /// <summary>
-        /// 호위기의 오프셋 동반 급강하 궤적을 생성합니다.
+        /// 화면 상단 재진입점에서 소속 그리드 슬롯으로 복귀하는 3차 베지어 곡선 경로를 생성합니다.
         /// </summary>
-        public static BezierSegment[] CreateEscortDiveTrajectory(Vector2 startPos, Vector2 bossStartPos, Vector2 targetPlayerPos, Vector2 escortOffset, float screenBottomY = -11.0f)
+        public BezierPath GenerateReturnBezierPath(Vector3 reentryPos, Vector3 targetSlot)
         {
-            BezierSegment[] bossTrajectory = CreateSingleDiveTrajectory(bossStartPos, targetPlayerPos, screenBottomY);
+            BezierPath path = new BezierPath();
 
-            BezierSegment[] escortTrajectory = new BezierSegment[bossTrajectory.Length];
-            for (int i = 0; i < bossTrajectory.Length; i++)
-            {
-                BezierSegment bSeg = bossTrajectory[i];
-                if (i == 0)
-                {
-                    escortTrajectory[i] = new BezierSegment(
-                        startPos,
-                        bSeg.p1 + escortOffset,
-                        bSeg.p2 + escortOffset,
-                        bSeg.p3 + escortOffset
-                    );
-                }
-                else
-                {
-                    escortTrajectory[i] = new BezierSegment(
-                        bSeg.p0 + escortOffset,
-                        bSeg.p1 + escortOffset,
-                        bSeg.p2 + escortOffset,
-                        bSeg.p3 + escortOffset
-                    );
-                }
-            }
+            Vector3 p0 = reentryPos;
+            Vector3 p1 = reentryPos + new Vector3(0f, -3.0f, 0f);
+            Vector3 p2 = targetSlot + new Vector3((reentryPos.x > targetSlot.x ? 2.0f : -2.0f), 2.0f, 0f);
+            Vector3 p3 = targetSlot;
 
-            return escortTrajectory;
+            path.AddSegment(new BezierSegment(p0, p1, p2, p3));
+            return path;
         }
 
         /// <summary>
-        /// 화면 상단 재진입 후 슬롯으로 완만하게 복귀하는 궤적을 생성합니다.
+        /// 테스트 또는 외부에서 특정 적의 다이브를 강제 발동합니다.
         /// </summary>
-        public static BezierSegment[] CreateReturnTrajectory(Vector2 returnEntryPos, Vector2 slotTargetPos)
+        public void ForceDive(EnemyBase enemy)
         {
-            Vector2 p0 = returnEntryPos;
-            Vector2 p1 = new Vector2(returnEntryPos.x, returnEntryPos.y - 2.5f);
-            Vector2 p2 = new Vector2(slotTargetPos.x, slotTargetPos.y + 2.0f);
-            Vector2 p3 = slotTargetPos;
-
-            return new BezierSegment[] { new BezierSegment(p0, p1, p2, p3) };
+            LaunchSingleDive(enemy);
         }
     }
 }
