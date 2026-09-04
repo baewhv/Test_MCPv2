@@ -1,4 +1,4 @@
-# 객체 상호작용 및 아키텍처 관계도 (Object Architecture & Interaction Map)
+﻿# 객체 상호작용 및 아키텍처 관계도 (Object Architecture & Interaction Map)
 
 이 문서는 프로젝트 내 모든 게임 오브젝트 간의 상호작용, 충돌 판정, 이벤트 구독 및 데이터 참조 관계를 총괄 색인화하는 참조 전용 마스터 관계도입니다.
 `Developer` 에이전트가 신규 기능을 구현할 때마다 실시간으로 관계도를 1줄씩 동기화하며, 상세한 내부 구현 스펙은 `docs/implementations/` 개별 문서를 참조합니다.
@@ -9,7 +9,9 @@
 
 | 발신 객체 (Sender) | 수신 객체 (Receiver) | 감지 방식 (Trigger / Method) | 상호작용 내용 및 호출 메서드 |
 | :--- | :--- | :--- | :--- |
-| `PlayerController` (`PF_Player`) | `PlayAreaManager` | 직접 참조 / 메서드 호출 | `ClampPosition()`을 호출하여 화면 좌우 경계 밖 이탈 방지 |
+| `PlayAreaManager` (독립 매니저) | `Camera` (`Main Camera`) | 직렬화 참조 (`_targetCamera`) | 3:4 타겟 해상도(224x288) 뷰포트 Rect 및 Orthographic Size(10) 동기화 |
+| `PlayAreaManager` | BoundaryColliders (`Boundary` Tag) | 런타임 4방향 생성 | Left, Right, Top, Bottom 외곽 BoxCollider2D(isTrigger: true) 배치 |
+| `PlayerController` (`PF_Player`) | `PlayAreaManager` | 직접 참조 / 싱글톤 인스턴스 | `ClampPosition()`을 호출하여 화면 좌우 경계 밖 이탈 방지 |
 | `PlayerShooting` (`PF_Player`) | `PlayerBullet` (`PF_PlayerBullet`) | 오브젝트 풀 관리 / `TryFire()` | 화면 내 최대 2발(싱글) / 4발(듀얼) 발사 제한 및 인스턴스 활성화 |
 | `PlayerBullet` (`PF_PlayerBullet`) | `PlayAreaManager` | OnTriggerEnter2D / `CheckBoundary()` | 상단 경계 도달 시 `ReturnToPool()` 호출 |
 | `PlayerBullet` (`PF_PlayerBullet`) | `IDamageable` (`PF_Enemy_*`) | OnTriggerEnter2D | `TakeDamage(1)` 호출 (인터페이스 기반 피격 및 풀 회수) |
@@ -70,6 +72,10 @@
 ```mermaid
 graph TD
     InputSystem["New Input System (Move / Attack)"]
+    Camera["Main Camera (Rendering Only)"]
+    PlayAreaMgr["PlayAreaManager (Standalone Manager)"]
+    Boundary["Boundary BoxColliders (Tag: Boundary)"]
+
     Player["Player (PF_Player Prefab)"]
     PlayerCtrl["PlayerController"]
     PlayerShoot["PlayerShooting"]
@@ -88,11 +94,14 @@ graph TD
     EnemyData["EnemyDataSO (Stats / Scores)"]
     BezierMath["BezierCurve (Math Engine)"]
 
+    PlayAreaMgr -->|Sync Viewport & Ortho| Camera
+    PlayAreaMgr -->|Generate| Boundary
     InputSystem --> PlayerCtrl
     InputSystem --> PlayerShoot
     Player --> PlayerCtrl
     Player --> PlayerShoot
     Player --> PlayerHealth
+    PlayerCtrl -->|Clamp Position| PlayAreaMgr
     PlayerShoot -->|Fire| PlayerBullet
 
     SeqMgr --> GridMgr
@@ -109,7 +118,9 @@ graph TD
     GridMgr -->|Update Position (Sine Wave)| Enemy
 
     PlayerBullet -->|OnTriggerEnter2D: IDamageable.TakeDamage| Enemy
+    PlayerBullet -->|OnTriggerEnter2D: Despawn| Boundary
     EnemyBulletPool -->|OnTriggerEnter2D: IDamageable.TakeDamage| PlayerHealth
+    EnemyBulletPool -->|OnTriggerEnter2D: Despawn| Boundary
     Enemy -->|OnTriggerEnter2D: Collision| PlayerHealth
     Enemy -->|OnDestroyed| ExplosionMgr
     PlayerHealth -->|OnPlayerDied| ExplosionMgr

@@ -46,6 +46,10 @@ namespace Galaga.Gameplay.Enemy
         public int CurrentHP => _currentHP;
         public bool IsDead => _currentState == EnemyState.Dead || _currentHP <= 0;
         public EnemyType Type => _enemyData != null ? _enemyData.Type : EnemyType.Zako;
+        public EnemyType EnemyType => Type;
+        public bool IsAlive => !IsDead;
+        public FormationSlot AssignedSlot { get; set; }
+        public Vector3 SlotAnchorPosition => AssignedSlot != null ? (Vector3)AssignedSlot.CurrentWorldPosition : transform.position;
 
         private void Awake()
         {

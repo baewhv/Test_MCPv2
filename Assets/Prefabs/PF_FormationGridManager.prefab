@@ -100,7 +100,7 @@ MonoBehaviour:
   _playerLeadTime: 0.25
   _autoDiveEnabled: 0
   _screenBottomY: -11
-  _screenTopY: 11
+  _screenTopReentryY: 11
 --- !u!114 &6468559566844035783
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -113,7 +113,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebf218247eefe9140b60d3cada2a9bc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Galaga.Gameplay.Combat.EnemyBulletPool
-  _bulletPrefab: {fileID: 2142684326320996047, guid: 95640f946da782b42bcdbcff1cd7eda3, type: 3}
+  _bulletPrefab: {fileID: 951017858408526202, guid: 95640f946da782b42bcdbcff1cd7eda3, type: 3}
   _initialPoolSize: 16
   _playAreaManager: {fileID: 0}
 --- !u!114 &4154343457548316282

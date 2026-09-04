@@ -99,6 +99,7 @@ namespace Galaga.Gameplay.Enemy
         }
 
         public IReadOnlyList<FormationSlot> Slots => _slots;
+        public FormationSlot[] GetAllSlots() => _slots.ToArray();
         public int OccupiedCount
         {
             get

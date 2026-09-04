@@ -66,6 +66,10 @@ namespace Galaga.Gameplay.Player
 
         private void Start()
         {
+            if (_playAreaManager == null)
+            {
+                _playAreaManager = PlayAreaManager.Instance;
+            }
             if (_playAreaManager == null && Camera.main != null)
             {
                 _playAreaManager = Camera.main.GetComponent<PlayAreaManager>();

@@ -1,43 +1,39 @@
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 using Galaga.Core;
 
 namespace Galaga.Gameplay.Combat
 {
     /// <summary>
-    /// 적 탄환의 인스턴스를 관리하고 재사용하는 오브젝트 풀 매니저 컴포넌트입니다.
-    /// GC 생성을 최소화하고 화면 내 적 발사체를 안전하게 관리합니다.
+    /// 적 기체 발사 탄환(EnemyBullet)을 사전 인스턴스화하고 재사용하는 오브젝트 풀 매니저 싱글톤입니다.
     /// </summary>
     [DisallowMultipleComponent]
     public class EnemyBulletPool : MonoBehaviour
     {
         public static EnemyBulletPool Instance { get; private set; }
 
-        [Header("Pool Configuration")]
-        [Tooltip("적 탄환 완제품 프리팹 (PF_EnemyBullet)")]
-        [SerializeField] private GameObject _bulletPrefab;
+        [Header("Pool Settings")]
+        [Tooltip("스폰할 적 탄환 프리팹")]
+        [SerializeField] private EnemyBullet _bulletPrefab;
 
-        [Tooltip("초기 생성 탄환 수량")]
+        [Tooltip("풀 초기 생성 수량")]
         [SerializeField] private int _initialPoolSize = 16;
 
         [Header("References")]
         [Tooltip("PlayAreaManager 참조")]
         [SerializeField] private PlayAreaManager _playAreaManager;
 
-        private readonly List<EnemyBullet> _bulletPool = new List<EnemyBullet>();
-        private readonly HashSet<EnemyBullet> _activeBullets = new HashSet<EnemyBullet>();
-        private Transform _poolRoot;
+        private EnemyBullet[] _pool;
+        private Transform _poolContainer;
+        private int _activeBulletCount = 0;
 
-        public GameObject BulletPrefab
+        public int ActiveBulletCount => _activeBulletCount;
+        public int TotalPoolCapacity => _pool != null ? _pool.Length : 0;
+
+        public EnemyBullet BulletPrefab
         {
             get => _bulletPrefab;
             set => _bulletPrefab = value;
-        }
-
-        public int InitialPoolSize
-        {
-            get => _initialPoolSize;
-            set => _initialPoolSize = Mathf.Max(1, value);
         }
 
         public PlayAreaManager PlayAreaManager
@@ -45,9 +41,6 @@ namespace Galaga.Gameplay.Combat
             get => _playAreaManager;
             set => _playAreaManager = value;
         }
-
-        public int ActiveBulletCount => _activeBullets.Count;
-        public int TotalPoolCount => _bulletPool.Count;
 
         private void Awake()
         {
@@ -66,6 +59,10 @@ namespace Galaga.Gameplay.Combat
 
         private void Start()
         {
+            if (_playAreaManager == null)
+            {
+                _playAreaManager = PlayAreaManager.Instance;
+            }
             if (_playAreaManager == null && Camera.main != null)
             {
                 _playAreaManager = Camera.main.GetComponent<PlayAreaManager>();
@@ -81,102 +78,119 @@ namespace Galaga.Gameplay.Combat
         }
 
         /// <summary>
-        /// 오브젝트 풀을 초기화하고 사전 인스턴스를 생성합니다.
+        /// 오브젝트 풀을 초기화하고 지정 수량의 탄환을 사전 생성합니다.
         /// </summary>
         public void InitializePool()
         {
-            if (_poolRoot == null)
-            {
-                _poolRoot = transform;
-            }
-
             if (_bulletPrefab == null)
             {
                 return;
             }
 
+            _pool = new EnemyBullet[_initialPoolSize];
+            GameObject containerObj = new GameObject("EnemyBulletContainer");
+            containerObj.transform.SetParent(transform);
+            _poolContainer = containerObj.transform;
+
             for (int i = 0; i < _initialPoolSize; i++)
             {
-                CreateNewBulletInstance();
+                EnemyBullet bullet = Instantiate(_bulletPrefab, _poolContainer);
+                bullet.gameObject.SetActive(false);
+                bullet.Initialize(Vector2.down, bullet.Speed, OnBulletDeactivated, _playAreaManager);
+                _pool[i] = bullet;
             }
-        }
-
-        private EnemyBullet CreateNewBulletInstance()
-        {
-            GameObject bulletObj;
-            if (_bulletPrefab != null)
-            {
-                bulletObj = Instantiate(_bulletPrefab, _poolRoot);
-            }
-            else
-            {
-                bulletObj = new GameObject("EnemyBullet");
-                bulletObj.transform.SetParent(_poolRoot);
-            }
-
-            bulletObj.SetActive(false);
-
-            EnemyBullet bullet = bulletObj.GetComponent<EnemyBullet>();
-            if (bullet == null)
-            {
-                bullet = bulletObj.AddComponent<EnemyBullet>();
-            }
-
-            bullet.Initialize(Vector2.down, 16f, OnBulletDeactivated, _playAreaManager);
-            _bulletPool.Add(bullet);
-            return bullet;
         }
 
         /// <summary>
-        /// 풀에서 비활성화된 탄환을 가져오거나 새로 생성하여 반환합니다.
+        /// 풀에서 비활성 탄환을 가져와 지정 위치 및 방향으로 발사 활성화합니다.
         /// </summary>
-        public EnemyBullet SpawnBullet(Vector3 position, Vector2 direction, float speed = 16.0f)
+        public EnemyBullet SpawnBullet(Vector3 position, Vector2 direction, float speed)
         {
-            EnemyBullet bullet = GetPooledBullet();
+            EnemyBullet bullet = GetAvailableBullet();
+            if (bullet == null)
+            {
+                return null;
+            }
+
             bullet.transform.position = position;
-            bullet.PlayAreaManager = _playAreaManager;
             bullet.Initialize(direction, speed, OnBulletDeactivated, _playAreaManager);
             bullet.gameObject.SetActive(true);
+            _activeBulletCount++;
 
-            _activeBullets.Add(bullet);
             return bullet;
         }
 
-        private EnemyBullet GetPooledBullet()
+        private EnemyBullet GetAvailableBullet()
         {
-            for (int i = 0; i < _bulletPool.Count; i++)
+            if (_pool == null)
             {
-                if (_bulletPool[i] != null && !_bulletPool[i].gameObject.activeSelf)
+                return null;
+            }
+
+            for (int i = 0; i < _pool.Length; i++)
+            {
+                if (_pool[i] != null && !_pool[i].gameObject.activeSelf)
                 {
-                    return _bulletPool[i];
+                    return _pool[i];
                 }
             }
 
-            return CreateNewBulletInstance();
+            // 풀 고갈 시 동적 확장
+            if (_bulletPrefab != null)
+            {
+                EnemyBullet newBullet = Instantiate(_bulletPrefab, _poolContainer != null ? _poolContainer : transform);
+                newBullet.gameObject.SetActive(false);
+                newBullet.Initialize(Vector2.down, newBullet.Speed, OnBulletDeactivated, _playAreaManager);
+
+                Array.Resize(ref _pool, _pool.Length + 1);
+                _pool[_pool.Length - 1] = newBullet;
+                return newBullet;
+            }
+
+            return null;
         }
 
         private void OnBulletDeactivated(EnemyBullet bullet)
         {
-            if (bullet != null)
+            _activeBulletCount = Mathf.Max(0, _activeBulletCount - 1);
+        }
+
+        /// <summary>
+        /// 테스트용: 외부에서 생성된 풀 배열을 수동 주입합니다.
+        /// </summary>
+        public void SetPoolForTesting(EnemyBullet[] pool, PlayAreaManager playAreaManager = null)
+        {
+            _pool = pool;
+            _playAreaManager = playAreaManager;
+            _activeBulletCount = 0;
+            foreach (var bullet in _pool)
             {
-                _activeBullets.Remove(bullet);
+                if (bullet != null)
+                {
+                    bullet.PlayAreaManager = _playAreaManager;
+                }
             }
         }
 
         /// <summary>
-        /// 모든 활성 탄환을 강제 회수합니다.
+        /// 활성화된 모든 적 탄환을 회수합니다.
         /// </summary>
-        public void ClearAllActiveBullets()
+        public void ResetAllBullets()
         {
-            List<EnemyBullet> activeList = new List<EnemyBullet>(_activeBullets);
-            for (int i = 0; i < activeList.Count; i++)
+            if (_pool == null)
             {
-                if (activeList[i] != null)
+                return;
+            }
+
+            for (int i = 0; i < _pool.Length; i++)
+            {
+                if (_pool[i] != null && _pool[i].gameObject.activeSelf)
                 {
-                    activeList[i].ReturnToPool();
+                    _pool[i].ReturnToPool();
                 }
             }
-            _activeBullets.Clear();
+
+            _activeBulletCount = 0;
         }
     }
 }

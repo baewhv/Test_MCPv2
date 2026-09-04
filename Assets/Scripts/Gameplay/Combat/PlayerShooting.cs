@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Galaga.Core;
@@ -6,64 +6,62 @@ using Galaga.Core;
 namespace Galaga.Gameplay.Combat
 {
     /// <summary>
-    /// 플레이어 기체의 탄환 발사 및 오브젝트 풀을 관리하는 컴포넌트입니다.
-    /// 화면 내 최대 탄환 수(싱글 2발 / 듀얼 4발)를 제한합니다.
+    /// 플레이어 탄환 발사 및 오브젝트 풀을 관리하는 컴포넌트입니다.
+    /// 화면 내 최대 발사 탄환 수(싱글 2발, 듀얼 4발)를 제한하며 발사 간격을 제어합니다.
     /// </summary>
     [DisallowMultipleComponent]
     public class PlayerShooting : MonoBehaviour
     {
-        [Header("Shooting Settings")]
-        [Tooltip("싱글 파이터 기준 화면 내 동시 존재 가능한 최대 탄환 수")]
-        [SerializeField] private int _maxSimultaneousBullets = 2;
-
-        [Tooltip("발사 최소 간격(초)")]
-        [SerializeField] private float _fireCooldown = 0.05f;
-
-        [Tooltip("듀얼 파이터 활성화 여부")]
-        [SerializeField] private bool _isDualFighter = false;
-
-        [Header("Spawn Points")]
-        [Tooltip("단일 파이터 기본 발사 위치")]
-        [SerializeField] private Transform _centerFirePoint;
-
-        [Tooltip("듀얼 파이터 좌측 발사 위치")]
-        [SerializeField] private Transform _leftFirePoint;
-
-        [Tooltip("듀얼 파이터 우측 발사 위치")]
-        [SerializeField] private Transform _rightFirePoint;
-
-        [Header("Bullet Prefab & Pool")]
-        [Tooltip("탄환 프리팹 (PlayerBullet 컴포넌트 포함 필수)")]
-        [SerializeField] private GameObject _bulletPrefab;
+        [Header("Bullet Prefab & Pool Settings")]
+        [Tooltip("발사할 플레이어 탄환 프리팹")]
+        [SerializeField] private PlayerBullet _bulletPrefab;
 
         [Tooltip("오브젝트 풀 초기 생성 수량")]
-        [SerializeField] private int _initialPoolSize = 6;
+        [SerializeField] private int _initialPoolSize = 10;
+
+        [Header("Firing Constraints")]
+        [Tooltip("싱글 파이터 상태에서 화면 내 최대 허용 탄환 수")]
+        [SerializeField] private int _singleMaxBullets = 2;
+
+        [Tooltip("듀얼 파이터 상태에서 화면 내 최대 허용 탄환 수")]
+        [SerializeField] private int _dualMaxBullets = 4;
+
+        [Tooltip("연사 쿨타임 (초)")]
+        [SerializeField] private float _fireCooldown = 0.15f;
+
+        [Tooltip("탄환 발사 Y 오프셋 (기체 중심 기준)")]
+        [SerializeField] private float _bulletSpawnOffsetY = 0.5f;
+
+        [Tooltip("듀얼 파이터 좌우 포대 X 오프셋")]
+        [SerializeField] private float _dualGunOffsetX = 0.45f;
 
         [Header("References")]
         [Tooltip("PlayAreaManager 참조")]
         [SerializeField] private PlayAreaManager _playAreaManager;
 
-        [Tooltip("New Input System 공격 액션 참조")]
+        [Tooltip("New Input System 발사 액션 참조")]
         [SerializeField] private InputActionReference _attackAction;
 
-        private readonly List<PlayerBullet> _bulletPool = new List<PlayerBullet>();
-        private readonly HashSet<PlayerBullet> _activeBullets = new HashSet<PlayerBullet>();
-        private float _cooldownTimer = 0f;
-        private Transform _bulletPoolRoot;
+        private PlayerBullet[] _bulletPool;
+        private int _activeBulletCount = 0;
+        private float _lastFireTime = -999f;
+        private bool _isDualFighter = false;
+        private bool _canShoot = true;
 
-        public int MaxSimultaneousBullets => _isDualFighter ? _maxSimultaneousBullets * 2 : _maxSimultaneousBullets;
-        public int ActiveBulletCount => _activeBullets.Count;
-
+        public int ActiveBulletCount => _activeBulletCount;
+        public int MaxBulletsOnScreen => _isDualFighter ? _dualMaxBullets : _singleMaxBullets;
+        public int MaxSimultaneousBullets => MaxBulletsOnScreen;
+        public float FireCooldown { get => _fireCooldown; set => _fireCooldown = value; }
         public bool IsDualFighter
         {
             get => _isDualFighter;
             set => _isDualFighter = value;
         }
 
-        public GameObject BulletPrefab
+        public bool CanShoot
         {
-            get => _bulletPrefab;
-            set => _bulletPrefab = value;
+            get => _canShoot;
+            set => _canShoot = value;
         }
 
         public PlayAreaManager PlayAreaManager
@@ -72,28 +70,10 @@ namespace Galaga.Gameplay.Combat
             set => _playAreaManager = value;
         }
 
-        public Transform CenterFirePoint
+        public PlayerBullet BulletPrefab
         {
-            get => _centerFirePoint;
-            set => _centerFirePoint = value;
-        }
-
-        public Transform LeftFirePoint
-        {
-            get => _leftFirePoint;
-            set => _leftFirePoint = value;
-        }
-
-        public Transform RightFirePoint
-        {
-            get => _rightFirePoint;
-            set => _rightFirePoint = value;
-        }
-
-        public float FireCooldown
-        {
-            get => _fireCooldown;
-            set => _fireCooldown = value;
+            get => _bulletPrefab;
+            set => _bulletPrefab = value;
         }
 
         private void Awake()
@@ -103,6 +83,10 @@ namespace Galaga.Gameplay.Combat
 
         private void Start()
         {
+            if (_playAreaManager == null)
+            {
+                _playAreaManager = PlayAreaManager.Instance;
+            }
             if (_playAreaManager == null && Camera.main != null)
             {
                 _playAreaManager = Camera.main.GetComponent<PlayAreaManager>();
@@ -129,23 +113,10 @@ namespace Galaga.Gameplay.Combat
 
         private void Update()
         {
-            if (_cooldownTimer > 0f)
+            // 액션 바인딩이 없을 때 New Input System Keyboard 직접 폴링 fallback
+            if (_attackAction == null || _attackAction.action == null)
             {
-                _cooldownTimer -= Time.deltaTime;
-            }
-
-            // Fallback Keyboard 직접 폴링 (Input Action 미연결 시)
-            if (_attackAction == null)
-            {
-                CheckKeyboardInput();
-            }
-        }
-
-        private void CheckKeyboardInput()
-        {
-            if (Keyboard.current != null)
-            {
-                if (Keyboard.current.spaceKey.wasPressedThisFrame || Keyboard.current.zKey.wasPressedThisFrame)
+                if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
                 {
                     TryFire();
                 }
@@ -158,59 +129,115 @@ namespace Galaga.Gameplay.Combat
         }
 
         /// <summary>
-        /// 오브젝트 풀을 초기화하고 지정된 수량만큼 탄환을 미리 생성합니다.
+        /// 오브젝트 풀을 초기화하고 지정된 수량의 탄환을 사전 인스턴스화합니다.
         /// </summary>
         public void InitializePool()
         {
-            if (_bulletPoolRoot == null)
-            {
-                GameObject rootObj = new GameObject("PlayerBulletPool");
-                _bulletPoolRoot = rootObj.transform;
-            }
-
             if (_bulletPrefab == null)
             {
                 return;
             }
 
+            _bulletPool = new PlayerBullet[_initialPoolSize];
+            GameObject poolRoot = new GameObject("PlayerBulletPool");
+            poolRoot.transform.SetParent(transform);
+
             for (int i = 0; i < _initialPoolSize; i++)
             {
-                CreateNewBulletInstance();
+                PlayerBullet bullet = Instantiate(_bulletPrefab, poolRoot.transform);
+                bullet.gameObject.SetActive(false);
+                bullet.Initialize(OnBulletDeactivated, _playAreaManager);
+                _bulletPool[i] = bullet;
             }
         }
 
-        private PlayerBullet CreateNewBulletInstance()
+        /// <summary>
+        /// 발사 제약 조건(화면 내 최대 탄환 수, 쿨타임, 조작권)을 검사한 후 탄환을 발사합니다.
+        /// </summary>
+        public bool TryFire()
         {
-            GameObject bulletObj;
-            if (_bulletPrefab != null)
+            if (!_canShoot)
             {
-                bulletObj = Instantiate(_bulletPrefab, _bulletPoolRoot);
+                return false;
+            }
+
+            if (Time.time < _lastFireTime + _fireCooldown)
+            {
+                return false;
+            }
+
+            int requiredBullets = _isDualFighter ? 2 : 1;
+            if (_activeBulletCount + requiredBullets > MaxBulletsOnScreen)
+            {
+                return false;
+            }
+
+            if (_isDualFighter)
+            {
+                FireDual();
             }
             else
             {
-                bulletObj = new GameObject("PlayerBullet");
-                if (_bulletPoolRoot != null)
-                {
-                    bulletObj.transform.SetParent(_bulletPoolRoot);
-                }
+                FireSingle();
             }
 
-            bulletObj.SetActive(false);
+            _lastFireTime = Time.time;
+            return true;
+        }
 
-            PlayerBullet bullet = bulletObj.GetComponent<PlayerBullet>();
+        private void FireSingle()
+        {
+            PlayerBullet bullet = GetPooledBullet();
             if (bullet == null)
             {
-                bullet = bulletObj.AddComponent<PlayerBullet>();
+                return;
             }
 
-            bullet.Initialize(OnBulletDeactivated, _playAreaManager);
-            _bulletPool.Add(bullet);
-            return bullet;
+            Vector3 spawnPos = transform.position;
+            spawnPos.y += _bulletSpawnOffsetY;
+
+            ActivateBullet(bullet, spawnPos);
+        }
+
+        private void FireDual()
+        {
+            PlayerBullet leftBullet = GetPooledBullet();
+            PlayerBullet rightBullet = GetPooledBullet();
+
+            if (leftBullet == null || rightBullet == null)
+            {
+                if (leftBullet != null) leftBullet.gameObject.SetActive(false);
+                if (rightBullet != null) rightBullet.gameObject.SetActive(false);
+                return;
+            }
+
+            Vector3 leftPos = transform.position;
+            leftPos.x -= _dualGunOffsetX;
+            leftPos.y += _bulletSpawnOffsetY;
+
+            Vector3 rightPos = transform.position;
+            rightPos.x += _dualGunOffsetX;
+            rightPos.y += _bulletSpawnOffsetY;
+
+            ActivateBullet(leftBullet, leftPos);
+            ActivateBullet(rightBullet, rightPos);
+        }
+
+        private void ActivateBullet(PlayerBullet bullet, Vector3 position)
+        {
+            bullet.transform.position = position;
+            bullet.gameObject.SetActive(true);
+            _activeBulletCount++;
         }
 
         private PlayerBullet GetPooledBullet()
         {
-            for (int i = 0; i < _bulletPool.Count; i++)
+            if (_bulletPool == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < _bulletPool.Length; i++)
             {
                 if (_bulletPool[i] != null && !_bulletPool[i].gameObject.activeSelf)
                 {
@@ -218,64 +245,61 @@ namespace Galaga.Gameplay.Combat
                 }
             }
 
-            return CreateNewBulletInstance();
+            // 풀이 고갈되었을 때 동적 확장
+            if (_bulletPrefab != null)
+            {
+                PlayerBullet newBullet = Instantiate(_bulletPrefab, transform);
+                newBullet.gameObject.SetActive(false);
+                newBullet.Initialize(OnBulletDeactivated, _playAreaManager);
+
+                Array.Resize(ref _bulletPool, _bulletPool.Length + 1);
+                _bulletPool[_bulletPool.Length - 1] = newBullet;
+                return newBullet;
+            }
+
+            return null;
         }
 
-        /// <summary>
-        /// 탄환 발사를 시도합니다. 화면 내 최대 탄환 수 또는 쿨다운 제한에 걸릴 경우 false를 반환합니다.
-        /// </summary>
-        /// <returns>발사 성공 여부</returns>
-        public bool TryFire()
-        {
-            if (_cooldownTimer > 0f)
-            {
-                return false;
-            }
-
-            int requiredBullets = _isDualFighter ? 2 : 1;
-            if (_activeBullets.Count + requiredBullets > MaxSimultaneousBullets)
-            {
-                return false;
-            }
-
-            if (_isDualFighter)
-            {
-                Vector3 leftPos = _leftFirePoint != null ? _leftFirePoint.position : transform.position + new Vector3(-0.3f, 0.5f, 0f);
-                Vector3 rightPos = _rightFirePoint != null ? _rightFirePoint.position : transform.position + new Vector3(0.3f, 0.5f, 0f);
-
-                SpawnBulletAt(leftPos);
-                SpawnBulletAt(rightPos);
-            }
-            else
-            {
-                Vector3 centerPos = _centerFirePoint != null ? _centerFirePoint.position : transform.position + new Vector3(0f, 0.5f, 0f);
-                SpawnBulletAt(centerPos);
-            }
-
-            _cooldownTimer = _fireCooldown;
-            return true;
-        }
-
-        private PlayerBullet SpawnBulletAt(Vector3 spawnPosition)
-        {
-            PlayerBullet bullet = GetPooledBullet();
-            bullet.transform.position = spawnPosition;
-            bullet.PlayAreaManager = _playAreaManager;
-            bullet.gameObject.SetActive(true);
-
-            _activeBullets.Add(bullet);
-            return bullet;
-        }
-
-        /// <summary>
-        /// 탄환이 비활성화(화면 이탈 또는 적 충돌)될 때 호출되는 콜백입니다.
-        /// </summary>
         private void OnBulletDeactivated(PlayerBullet bullet)
         {
-            if (bullet != null)
+            _activeBulletCount = Mathf.Max(0, _activeBulletCount - 1);
+        }
+
+        /// <summary>
+        /// 테스트 또는 수동 바인딩용: 외부에서 생성된 풀 배열을 주입합니다.
+        /// </summary>
+        public void SetBulletPoolForTesting(PlayerBullet[] pool)
+        {
+            _bulletPool = pool;
+            _activeBulletCount = 0;
+            foreach (var bullet in _bulletPool)
             {
-                _activeBullets.Remove(bullet);
+                if (bullet != null)
+                {
+                    bullet.Initialize(OnBulletDeactivated, _playAreaManager);
+                }
             }
+        }
+
+        /// <summary>
+        /// 활성화된 모든 탄환을 회수하고 카운트를 초기화합니다.
+        /// </summary>
+        public void ResetAllBullets()
+        {
+            if (_bulletPool == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < _bulletPool.Length; i++)
+            {
+                if (_bulletPool[i] != null && _bulletPool[i].gameObject.activeSelf)
+                {
+                    _bulletPool[i].ReturnToPool();
+                }
+            }
+
+            _activeBulletCount = 0;
         }
     }
 }
