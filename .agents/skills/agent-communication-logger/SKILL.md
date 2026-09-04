@@ -1,4 +1,4 @@
-﻿---
+---
 name: agent-communication-logger
 description: 에이전트 간의 실시간 인계(Handoff), 일감 위임, 결과 반환, PR 요청, QA 검수 요청 과정을 당일 타임라인 로그(docs/logs/agent_comm_YYYY-MM-DD.md)에 자동 누적 기록하는 표준 로깅 스킬
 ---

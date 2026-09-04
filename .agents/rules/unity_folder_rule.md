@@ -1,6 +1,6 @@
 # 유니티 프로젝트 폴더 및 에셋 네이밍 규칙 (Unity Folder & Naming Rules)
 
-이 문서는 프로젝트의 모든 유니티 폴더 구조, 에셋 배치 위치 및 네이밍 컨벤션을 규정하는 단독 표준 규칙입니다.
+이 문서는 프로젝트의 모든 유니티 폴더 구조, 에셋 배치 위치, 테스트 코드 분류 및 네이밍 컨벤션을 규정하는 단독 표준 규칙입니다.
 
 ---
 
@@ -23,7 +23,9 @@ Assets/
 ├── Scripts/                # C# 스크립트 (Core/, Systems/, Gameplay/, UI/, Utils/)
 ├── Shaders/                # 셰이더 및 셰이더 그래프(.shader, .shadergraph)
 ├── Sprites/                # 유니티 스프라이트 아틀라스 및 슬라이스 에셋
-├── Tests/                  # NUnit 테스트 스크립트 (Editor/, Runtime/)
+├── Tests/                  # NUnit 테스트 코드
+│   ├── Editor/             # EditMode 단위 테스트 (*Tests.cs: 수식, 단위 로직, SO 검증)
+│   └── Runtime/            # PlayMode 통합 테스트 (*Tests.cs: 물리, 충돌, 스폰 풀링 검증)
 └── Screenshots/            # QA 검수 캡처 스크린샷
 ```
 
@@ -49,9 +51,10 @@ Assets/
 | **애니메이션 클립** | 접두사 `Anim_` | `Anim_Player_Idle.anim`, `Anim_Player_Run.anim` |
 | **텍스처 (Texture)** | 접두사 `T_` | `T_Ground_Albedo.png`, `T_Ground_Normal.png` |
 | **오디오 (Audio)** | 접두사 `BGM_` / `SFX_` | `BGM_Title.wav`, `SFX_ButtonClick.wav` |
+| **테스트 코드 (Tests)** | 접미사 `*Tests.cs` | `PlayerShootingTests.cs`, `CombatTests.cs` |
 
 ---
 
 ## 4. 에이전트 준수 의무
-- **`Developer`**: 신규 스크립트, 프리팹, ScriptableObject, 머티리얼 생성 시 본 규칙의 폴더 경로와 접두사를 반드시 준수합니다.
-- **`QA`**: 4대 검수 시 에셋이 올바른 폴더에 위치하고 접두사 컨벤션을 따랐는지 확인합니다.
+- **`Developer`**: 신규 스크립트, 프리팹, ScriptableObject, 머티리얼, 테스트 코드 생성 시 본 규칙의 폴더 경로와 접두사를 반드시 준수합니다.
+- **`QA`**: 4대 검수 시 에셋 및 테스트 코드가 올바른 폴더(`Tests/Editor/`, `Tests/Runtime/`)에 위치하고 명명 컨벤션을 준수했는지 확인합니다.

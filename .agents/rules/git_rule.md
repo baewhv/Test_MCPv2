@@ -1,6 +1,6 @@
-﻿# Git 버전 관리 및 브랜치 운영 규칙 (Git Rules)
+# Git 버전 관리 및 브랜치 운영 규칙 (Git Rules)
 
-이 문서는 프로젝트의 모든 버전 관리, 브랜치 생명주기 및 PR 컨벤션을 규정하는 단독 표준 규칙입니다.
+이 문서는 프로젝트의 모든 버전 관리, 브랜치 생명주기, PR 컨벤션 및 워킹 트리 무결성을 규정하는 단독 표준 규칙입니다.
 
 ---
 
@@ -64,3 +64,13 @@
 
 ## 5. .meta 파일 무결성 검증 (Unity Integrity)
 - Assets 폴더 내의 모든 파일/디렉토리 변경 시, 반드시 대응하는 `.meta` 파일이 1:1 쌍으로 존재하는지 검증 후 커밋합니다.
+
+---
+
+## 6. Zero-Dirty 워킹 트리 보장 및 문서 즉시 커밋 규칙 (Zero-Dirty Working Tree Policy)
+1. **develop 워킹 트리 상시 Clean 유지**:
+   - 메인 저장소의 `develop` 브랜치는 항상 `nothing to commit, working tree clean` 상태를 유지해야 합니다.
+2. **문서/검수 산출물 즉시 커밋 의무**:
+   - `QA` 검수 완료(`worklist.md` 체크박스 갱신), `status.md` 상태 전이, 기획서 추가/수정, 스크린샷 저장 등 `develop` 브랜치 내의 파일 수정이 발생하면, `GitManager`는 즉시 `[docs] : ...` 또는 `[chore] : ...`로 커밋 및 원격 `origin/develop`으로 푸시하여 변경사항이 로컬 워킹 트리에 Unstaged/Uncommitted 상태로 방치되지 않도록 합니다.
+3. **PR 머지 후 로컬 완전 동기화 (Post-Merge Clean Sync)**:
+   - 사용자가 GitHub에서 PR을 머지하면, `GitManager`는 즉시 `git fetch origin develop && git pull origin develop`을 실행하여 로컬 `develop`을 원격 최신 상태와 100% 동기화하고, 사용 완료된 Worktree 및 브랜치를 삭제 정리합니다.

@@ -1,4 +1,4 @@
-﻿---
+---
 name: unity-cli-runner
 description: Unity 에디터를 띄우지 않고 터미널에서 백그라운드로 C# 컴파일 무결성 검증 및 NUnit 단위/통합 테스트를 무인 자동 실행하는 Unity CLI 러너 스킬
 ---
