@@ -7,3 +7,4 @@
 | 13:29:45 | Orchestrator | GitManager | 문서 커밋 위임 | tech_spec 수정본 및 에이전트 지침서 develop 정식 커밋/푸시 요청 |
 | 13:35:00 | GitManager | System | 문서 직접 커밋 | 4대 tech_spec 및 에이전트 지침서 develop 커밋/푸시 완료 |
 | 14:04:15 | GitManager | System | 문서 직접 커밋 | Developer 및 QA 페르소나 분리(제작/테스트 전담화) 규칙 develop 커밋/푸시 완료 |
+| 14:22:55 | System | System | 규칙/문서 정리 | Developer 및 GitManager 페르소나 확립, ARCHITECTURE.md 관계도 정돈 완료 |
