@@ -272,8 +272,7 @@ namespace Galaga.Gameplay.Enemy
             OnDiveStarted?.Invoke(boss);
 
             // 호위기 동반 발진 (보스 좌우 오프셋 궤적)
-            for (int i = 0; i < escortCount; i++)
-            {
+            for (int i = 0; i < escortCount; i++)\n            {
                 EnemyBase escort = goeiList[i];
                 float sideOffset = (i == 0) ? -1.2f : 1.2f;
                 Vector3 escortTarget = targetPos + new Vector3(sideOffset, 0f, 0f);

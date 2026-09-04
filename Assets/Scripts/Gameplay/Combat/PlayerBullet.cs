@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using Galaga.Core;
-using Galaga.Gameplay.Enemy;
 
 namespace Galaga.Gameplay.Combat
 {

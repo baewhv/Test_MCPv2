@@ -92,7 +92,7 @@ namespace Galaga.Gameplay.Combat
             containerObj.transform.SetParent(transform);
             _poolContainer = containerObj.transform;
 
-            for (int i = 0; i < _initialPoolSize; i++ Antigravity)
+            for (int i = 0; i < _initialPoolSize; i++)
             {
                 EnemyBullet bullet = Instantiate(_bulletPrefab, _poolContainer);
                 bullet.gameObject.SetActive(false);

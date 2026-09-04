@@ -15,4 +15,4 @@
 | 14:31:00 | GitManager | QA | QA 검수 요청 | IDamageable 리팩토링 PR 생성 완료, QA 단위테스트 작성 및 4대 검수 요청 |
 | 14:38:16 | QA | QA | 검수 착수 | [IDamageable 리팩토링] QA 4대 검수 절차 착수 |
 | 14:41:53 | QA | GitManager | QA 승인 | IDamageable 리팩토링 QA 4대 검수 통과, worklist [x] 완료 및 머지 대기 |
-| 15:08:30 | GitManager | System | 충돌 해결 | PR #10 develop 최신 변경사항(PlayAreaManager 분리 등) 병합 및 충돌 해결 완료 |
+| 15:15:00 | GitManager | System | 충돌 해결 | PR #9 머지 반영 develop 최신화 및 PR #10 충돌 해결 완료 |
