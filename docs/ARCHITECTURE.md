@@ -9,7 +9,9 @@
 
 | 발신 객체 (Sender) | 수신 객체 (Receiver) | 감지 방식 (Trigger / Method) | 상호작용 내용 및 호출 메서드 |
 | :--- | :--- | :--- | :--- |
-| `PlayerController` (`PF_Player`) | `PlayAreaManager` | 직접 참조 / 메서드 호출 | `ClampPosition()`을 호출하여 화면 좌우 경계 밖 이탈 방지 |
+| `PlayAreaManager` (독립 매니저) | `Camera` (`Main Camera`) | 직렬화 참조 (`_targetCamera`) | 3:4 타겟 해상도(224x288) 뷰포트 Rect 및 Orthographic Size(10) 동기화 |
+| `PlayAreaManager` | BoundaryColliders (`Boundary` Tag) | 런타임 4방향 생성 | Left, Right, Top, Bottom 외곽 BoxCollider2D(isTrigger: true) 배치 |
+| `PlayerController` (`PF_Player`) | `PlayAreaManager` | 직접 참조 / 싱글톤 인스턴스 | `ClampPosition()`을 호출하여 화면 좌우 경계 밖 이탈 방지 |
 | `PlayerShooting` (`PF_Player`) | `PlayerBullet` (`PF_PlayerBullet`) | 오브젝트 풀 관리 / `TryFire()` | 화면 내 최대 2발(싱글) / 4발(듀얼) 발사 제한 및 인스턴스 활성화 |
 | `PlayerBullet` (`PF_PlayerBullet`) | `PlayAreaManager` | OnTriggerEnter2D / `CheckBoundary()` | 상단 경계 도달 시 `ReturnToPool()` 호출 |
 | `PlayerBullet` (`PF_PlayerBullet`) | `EnemyBase` (`PF_Enemy_*`) | OnTriggerEnter2D | `TakeDamage(1)` 호출 (HP 감소 및 0 이하 시 파괴) |
@@ -70,6 +72,10 @@
 ```mermaid
 graph TD
     InputSystem["New Input System (Move / Attack)"]
+    Camera["Main Camera (Rendering Only)"]
+    PlayAreaMgr["PlayAreaManager (Standalone Manager)"]
+    Boundary["Boundary BoxColliders (Tag: Boundary)"]
+
     Player["Player (PF_Player Prefab)"]
     PlayerCtrl["PlayerController"]
     PlayerShoot["PlayerShooting"]
@@ -88,11 +94,14 @@ graph TD
     EnemyData["EnemyDataSO (Stats / Scores)"]
     BezierMath["BezierCurve (Math Engine)"]
 
+    PlayAreaMgr -->|Sync Viewport & Ortho| Camera
+    PlayAreaMgr -->|Generate| Boundary
     InputSystem --> PlayerCtrl
     InputSystem --> PlayerShoot
     Player --> PlayerCtrl
     Player --> PlayerShoot
     Player --> PlayerHealth
+    PlayerCtrl -->|Clamp Position| PlayAreaMgr
     PlayerShoot -->|Fire| PlayerBullet
 
     SeqMgr --> GridMgr
@@ -109,7 +118,9 @@ graph TD
     GridMgr -->|Update Position (Sine Wave)| Enemy
 
     PlayerBullet -->|OnTriggerEnter2D: Damage| Enemy
+    PlayerBullet -->|OnTriggerEnter2D: Despawn| Boundary
     EnemyBulletPool -->|OnTriggerEnter2D: Damage| PlayerHealth
+    EnemyBulletPool -->|OnTriggerEnter2D: Despawn| Boundary
     Enemy -->|OnTriggerEnter2D: Collision| PlayerHealth
     Enemy -->|OnDestroyed| ExplosionMgr
     PlayerHealth -->|OnPlayerDied| ExplosionMgr
