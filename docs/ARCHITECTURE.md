@@ -9,7 +9,9 @@
 
 | 발신 객체 (Sender) | 수신 객체 (Receiver) | 감지 방식 (Trigger / Collision) | 상호작용 내용 및 호출 메서드 |
 | :--- | :--- | :--- | :--- |
-| `PlayerController` (`PF_Player`) | `PlayAreaManager` | 직접 참조 / 메서드 호출 | `ClampPosition()`을 호출하여 화면 좌우 경계 밖 이탈 방지 |
+| `PlayAreaManager` (독립 매니저) | `Camera` (`Main Camera`) | 직렬화 참조 (`_targetCamera`) | 3:4 타겟 해상도(224x288) 뷰포트 Rect 및 Orthographic Size(10) 동기화 |
+| `PlayAreaManager` | BoundaryColliders (`Boundary` Tag) | 런타임 4방향 생성 | Left, Right, Top, Bottom 외곽 BoxCollider2D(isTrigger: true) 배치 |
+| `PlayerController` (`PF_Player`) | `PlayAreaManager` | 직접 참조 / 싱글톤 인스턴스 | `ClampPosition()`을 호출하여 화면 좌우 경계 밖 이탈 방지 |
 | `PlayerShooting` (`PF_Player`) | `PlayerBullet` (`PF_PlayerBullet`) | 오브젝트 풀 관리 / `TryFire()` | 화면 내 최대 2발(싱글) / 4발(듀얼) 발사 제한 및 인스턴스 활성화 |
 | `PlayerBullet` (`PF_PlayerBullet`) | `PlayAreaManager` / `EnemyBase` | OnTriggerEnter2D / `CheckBoundary()` | 화면 상단(`MaxY`) 이탈 또는 적 피격 시 `ReturnToPool()`을 호출하여 풀 회수 |
 | `PlayerHealth` (`PF_Player`) | `EnemyBase` / `EnemyBullet` | OnTriggerEnter2D | 피격 감지 시 `TakeDamage(1)` 호출 (무적 시 무시, 잔기 차감 후 중앙 리스폰) |
@@ -27,6 +29,9 @@
 
 ## 2. 객체 생성 및 생명주기 관리 (Spawn & Lifecycle Management)
 
+- **코어 매니저 계층 구조 (`MainGameScene.unity`)**:
+  - `Main Camera`: 순수 렌더링 및 AudioListener 전담
+  - `PlayAreaManager`: 독립 GameObject로 배치되어 Target Camera 직렬화 바인딩 및 3:4 뷰포트/월드 경계 계산, Boundary BoxCollider2D 관리
 - **플레이어 완제품 프리팹 구조 (`Assets/Prefabs/PF_Player.prefab`)**:
   - `PlayerController`: 1차원 수평 이동 및 경계 클램핑 제어
   - `PlayerShooting`: 오브젝트 풀링 기반 탄환 발사 및 화면 내 2발 제한 관리
@@ -86,6 +91,10 @@
 ```mermaid
 graph TD
     InputSystem["New Input System (Move / Attack)"]
+    Camera["Main Camera (Rendering Only)"]
+    PlayAreaMgr["PlayAreaManager (Standalone Manager)"]
+    Boundary["Boundary BoxColliders (Tag: Boundary)"]
+
     Player["Player (PF_Player Prefab)"]
     PlayerCtrl["PlayerController"]
     PlayerShoot["PlayerShooting"]
@@ -104,11 +113,14 @@ graph TD
     EnemyData["EnemyDataSO (Stats / Scores)"]
     BezierMath["BezierCurve (Math Engine)"]
 
+    PlayAreaMgr -->|Sync Viewport & Ortho| Camera
+    PlayAreaMgr -->|Generate| Boundary
     InputSystem --> PlayerCtrl
     InputSystem --> PlayerShoot
     Player --> PlayerCtrl
     Player --> PlayerShoot
     Player --> PlayerHealth
+    PlayerCtrl -->|Clamp Position| PlayAreaMgr
     PlayerShoot -->|Fire| PlayerBullet
 
     SeqMgr --> GridMgr
@@ -125,7 +137,9 @@ graph TD
     GridMgr -->|Update Position (Sine Wave)| Enemy
 
     PlayerBullet -->|OnTriggerEnter2D: Damage| Enemy
+    PlayerBullet -->|OnTriggerEnter2D: Despawn| Boundary
     EnemyBulletPool -->|OnTriggerEnter2D: Damage| PlayerHealth
+    EnemyBulletPool -->|OnTriggerEnter2D: Despawn| Boundary
     Enemy -->|OnTriggerEnter2D: Collision| PlayerHealth
     Enemy -->|OnDestroyed| ExplosionMgr
     PlayerHealth -->|OnPlayerDied| ExplosionMgr

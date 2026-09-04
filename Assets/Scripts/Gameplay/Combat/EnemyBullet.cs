@@ -6,16 +6,17 @@ using Galaga.Gameplay.Player;
 namespace Galaga.Gameplay.Combat
 {
     /// <summary>
-    /// 적 기체가 발사하는 탄환 컴포넌트입니다.
-    /// 플레이어를 향해 직선 비행(기본 15~20 units/sec)하며, 화면 하단 이탈 또는 플레이어 충돌 시 풀로 회수됩니다.
+    /// 적 기체가 발사하는 하향 조준 탄환 컴포넌트입니다.
+    /// 플레이어 기체와 충돌 시 데미지를 입히며, 화면 하단 경계 이탈 시 풀로 반환됩니다.
     /// </summary>
     [DisallowMultipleComponent]
     public class EnemyBullet : MonoBehaviour
     {
         [Header("Bullet Movement Settings")]
-        [Tooltip("적 탄환 비행 속도 (units/sec)")]
+        [Tooltip("적 탄환 이동 속도 (약 16.0 units/sec)")]
         [SerializeField] private float _speed = 16.0f;
 
+        [Header("Damage Settings")]
         [Tooltip("탄환 기본 데미지")]
         [SerializeField] private int _damage = 1;
 
@@ -29,12 +30,11 @@ namespace Galaga.Gameplay.Combat
         public float Speed
         {
             get => _speed;
-            set => _speed = Mathf.Max(0.1f, value);
+            set => _speed = value;
         }
 
         public int Damage => _damage;
         public Vector2 Direction => _direction;
-        public bool IsActive => gameObject.activeSelf;
 
         public PlayAreaManager PlayAreaManager
         {
@@ -42,13 +42,15 @@ namespace Galaga.Gameplay.Combat
             set => _playAreaManager = value;
         }
 
+        public bool IsActive => gameObject.activeSelf;
+
         /// <summary>
-        /// 탄환 비행 방향, 속도, 풀 회수 콜백을 초기화합니다.
+        /// 발사 방향, 속도 및 풀 반환 콜백을 초기화합니다.
         /// </summary>
         public void Initialize(Vector2 direction, float speed, Action<EnemyBullet> onDeactivatedCallback, PlayAreaManager playAreaManager = null)
         {
-            _direction = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector2.down;
-            _speed = speed > 0f ? speed : 16.0f;
+            _direction = direction.normalized;
+            _speed = speed;
             _onDeactivatedCallback = onDeactivatedCallback;
             if (playAreaManager != null)
             {
@@ -62,6 +64,10 @@ namespace Galaga.Gameplay.Combat
 
         private void Start()
         {
+            if (_playAreaManager == null)
+            {
+                _playAreaManager = PlayAreaManager.Instance;
+            }
             if (_playAreaManager == null && Camera.main != null)
             {
                 _playAreaManager = Camera.main.GetComponent<PlayAreaManager>();
@@ -74,32 +80,40 @@ namespace Galaga.Gameplay.Combat
         }
 
         /// <summary>
-        /// 진행 방향으로 이동하고 화면 하단/외곽 경계를 검사합니다.
+        /// 지정된 방향과 속도로 이동하고 화면 하단/외곽 경계 이탈을 검사합니다.
         /// </summary>
         public void Move(float deltaTime)
         {
-            Vector3 delta = (Vector3)(_direction * _speed * deltaTime);
-            transform.position += delta;
+            Vector3 pos = transform.position;
+            pos.x += _direction.x * _speed * deltaTime;
+            pos.y += _direction.y * _speed * deltaTime;
+            transform.position = pos;
 
             CheckBoundary();
         }
 
         private void CheckBoundary()
         {
-            float minY = _playAreaManager != null ? _playAreaManager.MinY - 1.0f : -10.5f;
-            float minX = _playAreaManager != null ? _playAreaManager.MinX - 2.0f : -8.0f;
-            float maxX = _playAreaManager != null ? _playAreaManager.MaxX + 2.0f : 8.0f;
-            float maxY = _playAreaManager != null ? _playAreaManager.MaxY + 2.0f : 12.0f;
-
-            Vector3 pos = transform.position;
-            if (pos.y < minY || pos.y > maxY || pos.x < minX || pos.x > maxX)
+            if (_playAreaManager != null)
             {
-                ReturnToPool();
+                if (_playAreaManager.IsOutOfBounds(transform.position, 1.5f))
+                {
+                    ReturnToPool();
+                }
+            }
+            else
+            {
+                // Fallback: 기본 Y값 검사
+                if (transform.position.y < -12.0f || transform.position.y > 12.0f ||
+                    transform.position.x < -10.0f || transform.position.x > 10.0f)
+                {
+                    ReturnToPool();
+                }
             }
         }
 
         /// <summary>
-        /// 탄환을 비활성화하고 풀 콜백에 반환합니다.
+        /// 탄환을 비활성화하고 등록된 풀 콜백에 반환합니다.
         /// </summary>
         public void ReturnToPool()
         {
@@ -119,21 +133,21 @@ namespace Galaga.Gameplay.Combat
                 return;
             }
 
-            // 플레이어와 충돌 시 피격 처리 및 풀 회수
-            if (collision.CompareTag("Player") || collision.name.Contains("Player"))
+            // 외곽 경계 충돌 시 회수
+            if (collision.CompareTag("Boundary") || collision.gameObject.name.Contains("Border"))
             {
-                PlayerHealth playerHealth = collision.GetComponent<PlayerHealth>();
-                if (playerHealth != null)
-                {
-                    playerHealth.TakeDamage(_damage);
-                }
                 ReturnToPool();
                 return;
             }
 
-            // 하단/외곽 경계 충돌 시 풀 회수
-            if (collision.CompareTag("Boundary") || collision.gameObject.name == "BottomBorder")
+            // 플레이어 피격 처리
+            if (collision.CompareTag("Player") || collision.name.Contains("Player"))
             {
+                PlayerHealth health = collision.GetComponent<PlayerHealth>();
+                if (health != null)
+                {
+                    health.TakeDamage(_damage);
+                }
                 ReturnToPool();
             }
         }
