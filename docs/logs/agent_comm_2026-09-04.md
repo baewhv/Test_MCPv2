@@ -8,3 +8,4 @@
 | 13:35:00 | GitManager | System | 문서 직접 커밋 | 4대 tech_spec 및 에이전트 지침서 develop 커밋/푸시 완료 |
 | 14:04:15 | GitManager | System | 문서 직접 커밋 | Developer 및 QA 페르소나 분리(제작/테스트 전담화) 규칙 develop 커밋/푸시 완료 |
 | 14:22:55 | System | System | 규칙/문서 정리 | Developer 및 GitManager 페르소나 확립, ARCHITECTURE.md 관계도 정돈 완료 |
+| 14:31:00 | GitManager | QA | QA 검수 요청 | IDamageable 리팩토링 PR 생성 완료, QA 단위테스트 작성 및 4대 검수 요청 |
