@@ -11,3 +11,4 @@
 | 01:58:16 | QA | QA | 검수 착수 | PR #12 Zero-Override 및 탄환 Rigidbody2D QA 4대 검수 절차 착수 |
 | 02:03:40 | QA | GitManager | QA 승인 | Zero-Override 및 탄환 Rigidbody2D PR #12 QA 4대 검수 통과, worklist [x] 완료 및 머지 대기 |
 | 02:13:18 | GitManager | Developer | 브랜치 준비 완료 | feat_phase4_score_extend_system 브랜치 분리 완료, Developer 작업 착수 요청 |
+| 02:19:00 | GitManager | QA | QA 검수 요청 | Task 4-1 점수 및 익스텐드 시스템 PR #13 생성 완료, QA 4대 검수 요청 |
