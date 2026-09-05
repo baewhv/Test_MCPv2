@@ -7,9 +7,11 @@ namespace Galaga.Gameplay.Combat
 {
     /// <summary>
     /// 적 기체가 발사하는 하향 조준 탄환 컴포넌트입니다.
-    /// 플레이어 기체와 충돌 시 데미지를 입히며, 화면 하단 경계 이탈 시 풀로 반환됩니다.
+    /// Rigidbody2D 물리 이동을 기반으로 지정된 각도로 이동하며 플레이어 기체와 충돌 시 데미지를 입히고 화면 외곽 경계 이탈 시 풀로 반환됩니다.
     /// </summary>
     [DisallowMultipleComponent]
+    [RequireComponent(typeof(Rigidbody2D))]
+    [RequireComponent(typeof(BoxCollider2D))]
     public class EnemyBullet : MonoBehaviour
     {
         [Header("Bullet Movement Settings")]
@@ -20,8 +22,15 @@ namespace Galaga.Gameplay.Combat
         [Tooltip("탄환 기본 데미지")]
         [SerializeField] private int _damage = 1;
 
+        [Header("Physics & Collider Settings")]
+        [Tooltip("물리 이동을 제어하는 Rigidbody2D")]
+        [SerializeField] private Rigidbody2D _rigidbody2D;
+
+        [Tooltip("충돌 감지용 BoxCollider2D")]
+        [SerializeField] private BoxCollider2D _boxCollider2D;
+
         [Header("References")]
-        [Tooltip("화면 하단 이탈 감지용 PlayAreaManager")]
+        [Tooltip("화면 하단/외곽 이탈 감지용 PlayAreaManager")]
         [SerializeField] private PlayAreaManager _playAreaManager;
 
         private Vector2 _direction = Vector2.down;
@@ -30,11 +39,20 @@ namespace Galaga.Gameplay.Combat
         public float Speed
         {
             get => _speed;
-            set => _speed = value;
+            set
+            {
+                _speed = value;
+                if (_rigidbody2D != null && gameObject.activeSelf)
+                {
+                    _rigidbody2D.velocity = _direction * _speed;
+                }
+            }
         }
 
         public int Damage => _damage;
         public Vector2 Direction => _direction;
+        public Rigidbody2D Rigidbody2D => _rigidbody2D;
+        public BoxCollider2D BoxCollider2D => _boxCollider2D;
 
         public PlayAreaManager PlayAreaManager
         {
@@ -49,7 +67,7 @@ namespace Galaga.Gameplay.Combat
         /// </summary>
         public void Initialize(Vector2 direction, float speed, Action<EnemyBullet> onDeactivatedCallback, PlayAreaManager playAreaManager = null)
         {
-            _direction = direction.normalized;
+            _direction = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector2.down;
             _speed = speed;
             _onDeactivatedCallback = onDeactivatedCallback;
             if (playAreaManager != null)
@@ -57,9 +75,54 @@ namespace Galaga.Gameplay.Combat
                 _playAreaManager = playAreaManager;
             }
 
+            SetupComponents();
+
+            if (_rigidbody2D != null && gameObject.activeSelf)
+            {
+                _rigidbody2D.velocity = _direction * _speed;
+            }
+
             // 진행 방향으로 탄환 2D 회전 정렬
             float angle = Mathf.Atan2(_direction.y, _direction.x) * Mathf.Rad2Deg + 90f;
             transform.rotation = Quaternion.Euler(0f, 0f, angle);
+        }
+
+        private void Awake()
+        {
+            SetupComponents();
+        }
+
+        private void OnEnable()
+        {
+            SetupComponents();
+            if (_rigidbody2D != null)
+            {
+                _rigidbody2D.velocity = _direction * _speed;
+            }
+        }
+
+        private void SetupComponents()
+        {
+            if (_rigidbody2D == null)
+            {
+                _rigidbody2D = GetComponent<Rigidbody2D>();
+            }
+            if (_rigidbody2D != null)
+            {
+                _rigidbody2D.gravityScale = 0f;
+                _rigidbody2D.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+                _rigidbody2D.freezeRotation = true;
+            }
+
+            if (_boxCollider2D == null)
+            {
+                _boxCollider2D = GetComponent<BoxCollider2D>();
+            }
+            if (_boxCollider2D != null)
+            {
+                _boxCollider2D.isTrigger = true;
+                _boxCollider2D.size = new Vector2(1.0f, 1.0f);
+            }
         }
 
         private void Start()
@@ -74,13 +137,22 @@ namespace Galaga.Gameplay.Combat
             }
         }
 
+        private void FixedUpdate()
+        {
+            if (_rigidbody2D != null)
+            {
+                _rigidbody2D.velocity = _direction * _speed;
+            }
+            CheckBoundary();
+        }
+
         private void Update()
         {
-            Move(Time.deltaTime);
+            CheckBoundary();
         }
 
         /// <summary>
-        /// 지정된 방향과 속도로 이동하고 화면 하단/외곽 경계 이탈을 검사합니다.
+        /// 지정된 방향과 속도로 이동하고 화면 하단/외곽 경계 이탈을 검사합니다 (단위 테스트 및 수동 이동 호환).
         /// </summary>
         public void Move(float deltaTime)
         {
@@ -88,6 +160,12 @@ namespace Galaga.Gameplay.Combat
             pos.x += _direction.x * _speed * deltaTime;
             pos.y += _direction.y * _speed * deltaTime;
             transform.position = pos;
+
+            if (_rigidbody2D != null)
+            {
+                _rigidbody2D.position = pos;
+                _rigidbody2D.velocity = _direction * _speed;
+            }
 
             CheckBoundary();
         }
@@ -103,7 +181,7 @@ namespace Galaga.Gameplay.Combat
             }
             else
             {
-                // Fallback: 기본 Y값 검사
+                // Fallback: 기본 외곽 범위 검사
                 if (transform.position.y < -12.0f || transform.position.y > 12.0f ||
                     transform.position.x < -10.0f || transform.position.x > 10.0f)
                 {
@@ -122,6 +200,11 @@ namespace Galaga.Gameplay.Combat
                 return;
             }
 
+            if (_rigidbody2D != null)
+            {
+                _rigidbody2D.velocity = Vector2.zero;
+            }
+
             gameObject.SetActive(false);
             _onDeactivatedCallback?.Invoke(this);
         }
@@ -134,7 +217,7 @@ namespace Galaga.Gameplay.Combat
             }
 
             // 외곽 경계 충돌 시 회수
-            if (collision.CompareTag("Boundary") || collision.gameObject.name.Contains("Border"))
+            if (collision.CompareTag("Boundary") || collision.gameObject.name.Contains("Border") || collision.name.Contains("Boundary"))
             {
                 ReturnToPool();
                 return;
@@ -143,10 +226,50 @@ namespace Galaga.Gameplay.Combat
             // 플레이어 피격 처리
             if (collision.CompareTag("Player") || collision.name.Contains("Player"))
             {
-                PlayerHealth health = collision.GetComponent<PlayerHealth>();
-                if (health != null)
+                IDamageable damageable = collision.GetComponent<IDamageable>();
+                if (damageable != null)
                 {
-                    health.TakeDamage(_damage);
+                    damageable.TakeDamage(_damage);
+                }
+                else
+                {
+                    PlayerHealth health = collision.GetComponent<PlayerHealth>();
+                    if (health != null)
+                    {
+                        health.TakeDamage(_damage);
+                    }
+                }
+                ReturnToPool();
+            }
+        }
+
+        private void OnTriggerEnter(Collider other)
+        {
+            if (other == null || !gameObject.activeSelf)
+            {
+                return;
+            }
+
+            if (other.CompareTag("Boundary") || other.gameObject.name.Contains("Border") || other.name.Contains("Boundary"))
+            {
+                ReturnToPool();
+                return;
+            }
+
+            if (other.CompareTag("Player") || other.name.Contains("Player"))
+            {
+                IDamageable damageable = other.GetComponent<IDamageable>();
+                if (damageable != null)
+                {
+                    damageable.TakeDamage(_damage);
+                }
+                else
+                {
+                    PlayerHealth health = other.GetComponent<PlayerHealth>();
+                    if (health != null)
+                    {
+                        health.TakeDamage(_damage);
+                    }
                 }
                 ReturnToPool();
             }

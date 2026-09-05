@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Galaga.Core
@@ -51,6 +52,52 @@ namespace Galaga.Core
         public float CalculateLength(int samples = 20)
         {
             return BezierCurve.CalculateSegmentLength(p0, p1, p2, p3, samples);
+        }
+    }
+
+    /// <summary>
+    /// 여러 개의 3차 베지어 곡선 세그먼트를 순차적으로 연결한 경로 데이터 클래스입니다.
+    /// </summary>
+    [Serializable]
+    public class BezierPath
+    {
+        [SerializeField] private List<BezierSegment> _segments = new List<BezierSegment>();
+
+        public List<BezierSegment> Segments => _segments;
+        public int SegmentCount => _segments != null ? _segments.Count : 0;
+
+        public BezierPath()
+        {
+            _segments = new List<BezierSegment>();
+        }
+
+        public BezierPath(IEnumerable<BezierSegment> segments)
+        {
+            _segments = segments != null ? new List<BezierSegment>(segments) : new List<BezierSegment>();
+        }
+
+        public void AddSegment(BezierSegment segment)
+        {
+            if (_segments == null)
+            {
+                _segments = new List<BezierSegment>();
+            }
+            _segments.Add(segment);
+        }
+
+        public void Clear()
+        {
+            _segments?.Clear();
+        }
+
+        public BezierSegment[] ToArray()
+        {
+            return _segments != null ? _segments.ToArray() : Array.Empty<BezierSegment>();
+        }
+
+        public static implicit operator BezierSegment[](BezierPath path)
+        {
+            return path?._segments != null ? path._segments.ToArray() : Array.Empty<BezierSegment>();
         }
     }
 

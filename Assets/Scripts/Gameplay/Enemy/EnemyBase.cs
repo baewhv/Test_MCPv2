@@ -7,10 +7,11 @@ namespace Galaga.Gameplay.Enemy
 {
     /// <summary>
     /// 모든 적 기체의 기본 생명주기, 체력, 피격 플래시, 상태 머신 및 경로 추적 연동을 담당하는 베이스 컴포넌트입니다.
+    /// IDamageable 인터페이스를 구현하여 탄환 및 충돌 시스템과의 피격 파이프라인 무결성을 보장합니다.
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(BezierPathFollower))]
-    public class EnemyBase : MonoBehaviour
+    public class EnemyBase : MonoBehaviour, IDamageable
     {
         [Header("Data Configuration")]
         [Tooltip("적 기체 스펙 ScriptableObject")]
@@ -133,7 +134,7 @@ namespace Galaga.Gameplay.Enemy
         }
 
         /// <summary>
-        /// 피격을 처리합니다.
+        /// 피격을 처리합니다 (IDamageable 인터페이스 구현).
         /// </summary>
         /// <param name="damage">입힐 데미지 양</param>
         /// <returns>사망 여부 (true: 사망/격파, false: 생존)</returns>
@@ -254,7 +255,7 @@ namespace Galaga.Gameplay.Enemy
         private IEnumerator FlashRoutine(Color restoreColor)
         {
             Color flashColor = _enemyData != null ? _enemyData.FlashColor : Color.white;
-            float duration = _enemyData != null ? _enemyData.FlashDuration : 0.08f;
+            float duration = (_enemyData != null && _enemyData.FlashDuration > 0f) ? _enemyData.FlashDuration : 0.15f;
 
             ApplyColor(flashColor);
             yield return new WaitForSeconds(duration);

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace Galaga.Gameplay.Enemy
 {
@@ -7,9 +7,10 @@ namespace Galaga.Gameplay.Enemy
     /// </summary>
     public enum EnemyType
     {
-        Zako,       // 자코 (드론 / 청색 곤충, 기본 HP 1)
-        Goei,       // 고에이 (가드 / 적색 나비, 기본 HP 1)
-        BossGalaga  // 보스 갤러그 (커맨더 / 녹-청 대형기, 기본 HP 2)
+        Zako = 0,       // 자코 (드론 / 청색 곤충, 기본 HP 1)
+        Goei = 1,       // 고에이 (가드 / 적색 나비, 기본 HP 1)
+        BossGalaga = 2, // 보스 갤러그 (커맨더 / 녹-청 대형기, 기본 HP 2)
+        Boss = 2        // BossGalaga alias
     }
 
     /// <summary>
