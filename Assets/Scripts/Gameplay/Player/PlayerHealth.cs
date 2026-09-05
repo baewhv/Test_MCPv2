@@ -7,9 +7,10 @@ namespace Galaga.Gameplay.Player
 {
     /// <summary>
     /// 플레이어 기체의 잔기(Lives), 피격, 리스폰 및 무적(Invincibility) 깜빡임 시스템을 제어하는 컴포넌트입니다.
+    /// IDamageable 인터페이스를 구현하여 충돌 및 탄환 피격 파이프라인의 일관성을 보장합니다.
     /// </summary>
     [DisallowMultipleComponent]
-    public class PlayerHealth : MonoBehaviour
+    public class PlayerHealth : MonoBehaviour, IDamageable
     {
         [Header("Lives Settings")]
         [Tooltip("게임 시작 시 기본 잔기 수")]
@@ -113,8 +114,9 @@ namespace Galaga.Gameplay.Player
         }
 
         /// <summary>
-        /// 피격을 처리합니다. 무적 상태이거나 이미 사망한 경우 무시됩니다.
+        /// 피격을 처리합니다 (IDamageable 인터페이스 구현). 무적 상태이거나 이미 사망한 경우 무시됩니다.
         /// </summary>
+        /// <param name="damage">입힐 데미지 양</param>
         /// <returns>실제 피격 발생 여부</returns>
         public bool TakeDamage(int damage = 1)
         {

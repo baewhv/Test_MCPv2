@@ -50,6 +50,12 @@ namespace Galaga.Gameplay.Combat
 
         public int ActiveBulletCount => _activeBulletCount;
         public int MaxBulletsOnScreen => _isDualFighter ? _dualMaxBullets : _singleMaxBullets;
+        public int MaxSimultaneousBullets => MaxBulletsOnScreen;
+        public float FireCooldown
+        {
+            get => _fireCooldown;
+            set => _fireCooldown = value;
+        }
         public bool IsDualFighter
         {
             get => _isDualFighter;

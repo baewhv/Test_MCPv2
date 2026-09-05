@@ -187,13 +187,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Galaga.Gameplay.Combat.PlayerShooting
-  _maxSimultaneousBullets: 2
-  _fireCooldown: 0.05
-  _isDualFighter: 0
-  _centerFirePoint: {fileID: 0}
-  _leftFirePoint: {fileID: 0}
-  _rightFirePoint: {fileID: 0}
-  _bulletPrefab: {fileID: 3829104726194857201, guid: 4a9b8c7d6e5f40392817a6b5c4d3e2f1, type: 3}
+  _bulletPrefab: {fileID: 4889047258957219693, guid: 4a9b8c7d6e5f40392817a6b5c4d3e2f1, type: 3}
   _initialPoolSize: 6
+  _singleMaxBullets: 2
+  _dualMaxBullets: 4
+  _fireCooldown: 0.05
+  _bulletSpawnOffsetY: 0.5
+  _dualGunOffsetX: 0.45
   _playAreaManager: {fileID: 0}
   _attackAction: {fileID: 0}

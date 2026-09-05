@@ -68,7 +68,7 @@ namespace Galaga.Tests
             manager.RecalculateBounds();
 
             Assert.IsNotNull(manager.TargetCamera);
-            Assert.AreEqual(_camera, manager.TargetCamera);
+            Assert.AreEqual(Camera.main, manager.TargetCamera);
 
             Object.DestroyImmediate(standaloneObj);
         }

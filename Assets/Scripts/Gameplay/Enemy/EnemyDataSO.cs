@@ -38,8 +38,8 @@ namespace Galaga.Gameplay.Enemy
         [Tooltip("피격 순간 플래시 반전 색상")]
         [SerializeField] private Color _flashColor = Color.white;
 
-        [Tooltip("피격 플래시 지속 시간(초)")]
-        [SerializeField] private float _flashDuration = 0.08f;
+        [Tooltip("피격 플래시 지속 시간(초) - 시인성 강화를 위해 0.15초로 상향")]
+        [SerializeField] private float _flashDuration = 0.15f;
 
         public EnemyType Type => _enemyType;
         public string EnemyName => _enemyName;
@@ -65,7 +65,7 @@ namespace Galaga.Gameplay.Enemy
             Color normalColor,
             Color damagedColor,
             Color flashColor,
-            float flashDuration = 0.08f)
+            float flashDuration = 0.15f)
         {
             _enemyType = type;
             _enemyName = enemyName;
