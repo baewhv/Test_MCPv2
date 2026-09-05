@@ -149,6 +149,8 @@ namespace Galaga.Gameplay.Enemy
         private void OnDisable()
         {
             StopAutoDive();
+            OnDiveStarted = null;
+            OnDiveCompleted = null;
         }
 
         /// <summary>
@@ -231,6 +233,7 @@ namespace Galaga.Gameplay.Enemy
                 return;
             }
 
+            enemy.EscortCount = 0;
             Vector2 startPos = enemy.transform.position;
             Vector2 targetPos = GetPredictedPlayerPosition();
 
@@ -266,6 +269,7 @@ namespace Galaga.Gameplay.Enemy
                 return;
             }
 
+            boss.EscortCount = escorts != null ? escorts.Count : 0;
             Vector2 bossStart = boss.transform.position;
             Vector2 targetPos = GetPredictedPlayerPosition();
 
@@ -290,33 +294,37 @@ namespace Galaga.Gameplay.Enemy
             OnDiveStarted?.Invoke(boss);
 
             // 호위기 동반 발진
-            for (int i = 0; i < escorts.Count; i++)
+            if (escorts != null)
             {
-                EnemyBase escort = escorts[i];
-                if (escort == null || escort.CurrentState != EnemyState.Formation) continue;
-
-                Vector2 escortStart = escort.transform.position;
-                Vector2 escortOffset = (i == 0) ? new Vector2(-1.2f, 0.6f) : new Vector2(1.2f, 0.6f);
-
-                BezierSegment[] escortSegments = CreateEscortDiveTrajectory(escortStart, bossStart, targetPos, escortOffset, _screenBottomY);
-
-                escort.SetState(EnemyState.Diving);
-                _activeDivingEnemies.Add(escort);
-
-                BezierPathFollower escortFollower = escort.GetComponent<BezierPathFollower>();
-                if (escortFollower != null)
+                for (int i = 0; i < escorts.Count; i++)
                 {
-                    escortFollower.SetPath(escortSegments, _diveSpeed, false);
-                    Action onCompleted = null;
-                    onCompleted = () =>
+                    EnemyBase escort = escorts[i];
+                    if (escort == null || escort.CurrentState != EnemyState.Formation) continue;
+
+                    escort.EscortCount = 0;
+                    Vector2 escortStart = escort.transform.position;
+                    Vector2 escortOffset = (i == 0) ? new Vector2(-1.2f, 0.6f) : new Vector2(1.2f, 0.6f);
+
+                    BezierSegment[] escortSegments = CreateEscortDiveTrajectory(escortStart, bossStart, targetPos, escortOffset, _screenBottomY);
+
+                    escort.SetState(EnemyState.Diving);
+                    _activeDivingEnemies.Add(escort);
+
+                    BezierPathFollower escortFollower = escort.GetComponent<BezierPathFollower>();
+                    if (escortFollower != null)
                     {
-                        escortFollower.OnPathCompleted -= onCompleted;
-                        OnDivePathCompleted(escort);
-                    };
-                    escortFollower.OnPathCompleted += onCompleted;
-                    escortFollower.Play();
+                        escortFollower.SetPath(escortSegments, _diveSpeed, false);
+                        Action onCompleted = null;
+                        onCompleted = () =>
+                        {
+                            escortFollower.OnPathCompleted -= onCompleted;
+                            OnDivePathCompleted(escort);
+                        };
+                        escortFollower.OnPathCompleted += onCompleted;
+                        escortFollower.Play();
+                    }
+                    OnDiveStarted?.Invoke(escort);
                 }
-                OnDiveStarted?.Invoke(escort);
             }
         }
 

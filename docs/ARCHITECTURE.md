@@ -25,6 +25,8 @@
 | `BezierPathFollower` | `BezierCurve` | 정적 수학 메서드 호출 | `EvaluatePath()`, `GetPathTangent()`로 위치/회전각 계산 |
 | `EntranceSequenceManager` | `FormationGridManager` | 직접 참조 / 메서드 호출 | `AssignEnemyToNextAvailableSlot()`으로 슬롯 배정 및 진입 궤적 생성 |
 | `FormationGridManager` | `EnemyBase` | 위치 동기화 / 상태 제어 | 슬롯 안착 적(`EnemyState.Formation`)의 위치를 Sine wave 호흡 좌표로 실시간 동기화 |
+| `EnemyBase` (`PF_Enemy_*`) | `ScoreManager` (`PF_ScoreManager`) | `Die()` 직접 호출 | 격파 시 `AddEnemyScore(Type, isDiving, escortCount)` 호출하여 차등 점수 가산 |
+| `ScoreManager` (`PF_ScoreManager`) | `PlayerHealth` (`PF_Player`) | `CheckExtend()` / `TriggerExtend()` | 2만/7만점 도달 시 `PlayerHealth.AddLife(1)` 호출 및 `OnExtendLife` 이벤트 발행 |
 
 ---
 
@@ -49,6 +51,9 @@
 | `PlayerHealth` | `OnLivesChanged(int)` | `HUD / UIManager` | 잔기 변경 시 하단 UI 아이콘 갱신 |
 | `PlayerHealth` | `OnPlayerRespawned` | `PlayerController` / `Audio` | 리스폰 효과음 재생 및 기체 조작권 복구 |
 | `PlayerHealth` | `OnPlayerDied` | `GameManager / ExplosionManager` | 폭발 이펙트 재생 및 게임 오버 시퀀스 트리거 |
+| `ScoreManager` | `OnScoreChanged(int)` | `HUD / UIManager` | 점수 변경 시 상단 1UP 스코어 텍스트 실시간 갱신 |
+| `ScoreManager` | `OnHighScoreChanged(int)` | `HUD / UIManager` | 하이스코어 갱신 시 HIGH SCORE 텍스트 실시간 반영 |
+| `ScoreManager` | `OnExtendLife(int)` | `PlayerHealth / AudioManager` | 익스텐드 도달 시 보너스 잔기 지급 및 효과음 재생 |
 | `BezierPathFollower` | `OnProgressChanged(float)` | `EnemyShooting` | $t=0.3\sim 0.6$ 구간 조준 사격 발사 |
 | `BezierPathFollower` | `OnPathCompleted` | `EnemyBase` / `EnemyDiveController` | 진입 안착 또는 하단 루프 복귀 핸들러 실행 |
 | `EnemyBase` | `OnDamaged(EnemyBase, int)` | `ScoreManager / SoundManager` | 피격 효과음 및 플래시 연출 |
@@ -81,6 +86,7 @@ graph TD
     PlayerShoot["PlayerShooting"]
     PlayerHealth["PlayerHealth"]
     PlayerBullet["PlayerBullet (PF_PlayerBullet)"]
+    ScoreMgr["ScoreManager (PF_ScoreManager)"]
 
     GridMgr["FormationGridManager (40 Slots, Sine Hover)"]
     SeqMgr["EntranceSequenceManager (5 Waves)"]
@@ -122,6 +128,8 @@ graph TD
     EnemyBulletPool -->|OnTriggerEnter2D: Damage| PlayerHealth
     EnemyBulletPool -->|OnTriggerEnter2D: Despawn| Boundary
     Enemy -->|OnTriggerEnter2D: Collision| PlayerHealth
+    Enemy -->|Die: AddEnemyScore| ScoreMgr
+    ScoreMgr -->|TriggerExtend: AddLife| PlayerHealth
     Enemy -->|OnDestroyed| ExplosionMgr
     PlayerHealth -->|OnPlayerDied| ExplosionMgr
 ```
