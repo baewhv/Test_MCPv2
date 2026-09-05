@@ -111,11 +111,11 @@ graph TD
     Enemy --> EnemyData
     Enemy --> PathFollower
     Enemy --> Shooting
-    Shooting -->|Fire (t=0.3~0.6)| EnemyBulletPool
+    Shooting -->|"Fire(t=0.3~0.6)"| EnemyBulletPool
     PathFollower --> BezierMath
     PathFollower -->|OnPathCompleted| Enemy
     Enemy -->|EnterFormation| GridMgr
-    GridMgr -->|Update Position (Sine Wave)| Enemy
+    GridMgr -->|"Update Position (Sine Wave)"| Enemy
 
     PlayerBullet -->|OnTriggerEnter2D: Damage| Enemy
     PlayerBullet -->|OnTriggerEnter2D: Despawn| Boundary

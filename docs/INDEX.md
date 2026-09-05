@@ -1,6 +1,6 @@
-# 기술 및 기획 문서 마스터 색인 (Technical & Specification Index)
+﻿# 기술 및 기획 문서 마스터 색인 (Technical & Specification Index)
 
-이 문서는 프로젝트 내의 모든 사용자 원본 기획서, 기획 상세 명세서, 객체 아키텍처 관계도 및 실시간 작업 문서를 총괄 색인화하는 순수 기술 문서 마스터 색인입니다.
+이 문서는 프로젝트 내의 모든 사용자 원본 기획서, 기획 상세 명세서, 개별 구현 기술문서, 객체 아키텍처 관계도 및 실시간 작업 문서를 총괄 색인화하는 순수 기술 문서 마스터 색인입니다.
 (※ 프로젝트 전역 운영 규칙, 환경 설정 및 문서 권한은 `GEMINI.md` 및 `PROJECT_SPEC.md`를 따릅니다.)
 
 ---
@@ -11,9 +11,9 @@
 
 ---
 
-## 2. 기획 상세 명세서 (Technical Specifications)
+## 2. 기획 및 구현 기술 명세서 (Technical Specifications)
 - [기획 상세 명세서 보관소 (`docs/tech_spec/`)](./tech_spec/): Designer가 원본 기획서를 분석하여 작성한 시스템별 상세 규칙, 수치, 상태 머신 FSM 명세서
-- *(신규 기능 명세서가 `docs/tech_spec/`에 추가되면 이곳에 링크가 등록됩니다)*
+- [개별 구현 기술문서 보관소 (`docs/implementations/`)](./implementations/): Developer가 C# 기능 구현 완료 후 작성한 클래스 구조, 직렬화 바인딩 및 핵심 알고리즘 기술문서
 
 ---
 
