@@ -1,4 +1,4 @@
-# AI 리소스 생성 및 프로토타입 규칙 (Asset Generation & Prototype Rules)
+﻿# AI 리소스 생성 및 프로토타입 규칙 (Asset Generation & Prototype Rules)
 
 이 문서는 토큰 및 API 비용을 극대화하여 절약하는 **프로토타입/더미 리소스 기본 원칙**, **이펙트(Particle System) 및 애니메이션(Animator Controller) 공통 표준**, 그리고 **AI 리소스 정식 제작 파이프라인**을 규정합니다.
 
@@ -71,3 +71,4 @@
 - **`Developer`**: 평소 기능 개발 시 프리미티브 기반 더미 리소스를 사용하며, 이펙트는 `ParticleSystem`, 움직임은 `Animator Controller`와 C# 스크립트를 연결합니다.
 - **`Artist`**: 사용자 요청 시 파티클 이펙트 구성 및 애니메이션 클립(`Anim_*`)을 제작하고 `status.md`에 연결 제안을 남깁니다.
 - **`QA`**: 파티클 시스템과 애니메이터 컨트롤러가 Missing 없이 정상 재생되는지 검수합니다.
+

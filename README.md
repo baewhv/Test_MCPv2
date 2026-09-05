@@ -1,205 +1,132 @@
-﻿# Unity 5대 전문 에이전트 자율 협업 프레임워크 (Unity Multi-Agent Framework)
+# Unity 6대 전문 에이전트 자율 협업 프레임워크 (Unity Multi-Agent Framework)
 
-> **Antigravity AI 기반 5대 정예 에이전트 분업 시스템**
-> 기획 분석부터 AI 리소스 제작, C# 개발, 무인 QA 검증, Git 버전 관리 및 Notion 일지 기록까지 완전 자동화된 사이클을 제공하는 유니티 프로젝트 표준 템플릿입니다.
+> **Antigravity AI 기반 6대 정예 에이전트 분업 및 16대 전담 스킬 시스템**
+> 기획 분석부터 AI 리소스 제작, C# 개발, 무인 QA 검증, Git 버전 관리 및 Notion 일지 기록까지 완전 자동화된 사이클을 제공하는 유니티 프로젝트 표준 프레임워크입니다.
 
 ---
 
-## 1. 5대 에이전트 협업 및 라이프사이클 흐름도 (Overall Architecture)
+## 1. 6대 에이전트 협업 및 라이프사이클 흐름도 (Overall Architecture)
 
 ```mermaid
 graph TD
-    %% 사용자 및 투입 영역
+    %% 사용자 및 PM
     User["사용자 (User)"]
-    Specs["docs/specs/ (기획서)"]
-    
-    %% 5대 전문 에이전트
-    Designer["1. Designer (기획 분석 / 태스크 세분화)"]
-    Artist["2. Artist (AI 리소스 제작 / 온디맨드)"]
-    Developer["3. Developer (C# 코딩 / 프리팹 조립 / 관계도 색인)"]
-    GitManager["4. GitManager (Worktree 격리 / 커밋 / PR 전담)"]
-    QA["5. QA (4대 무결성 검수 / PR 승인)"]
+    PM["PM (Project Manager / 오케스트레이션)"]
+    Specs["docs/specs/ (원본 기획서)"]
+
+    %% 5대 전문 실무 에이전트
+    Designer["1. Designer (기획 분석 / 태스크 도출)"]
+    Artist["2. Artist (2D/3D/UI/VFX 리소스 제작)"]
+    Developer["3. Developer (C# 코딩 / 브랜치 검증 / 직접 커밋)"]
+    GitManager["4. GitManager (브랜치 분리 / PR 발행 / 문서 동기화)"]
+    QA["5. QA (4대 무결성 검수 / NUnit 직접 커밋 / PR 승인)"]
 
     %% 핵심 관리 및 산출물
     Worklist["docs/work/worklist.md (체크리스트)"]
-    Status["docs/work/status.md (실시간 상태 제어)"]
-    Imports["Assets/_Imports/ (Submodule 원본 격리)"]
-    Prefabs["Assets/Prefabs/ (독립 완제품 프리팹)"]
+    Status["docs/work/status.md (실시간 상태판 / 작업 브랜치)"]
+    TechSpec["docs/tech_spec/ (기획 상세 명세서)"]
+    ImplDoc["docs/implementations/ (구현 기술문서)"]
     ArchMap["docs/ARCHITECTURE.md (객체 상호작용 색인)"]
     CommLog["docs/logs/agent_comm_YYYY-MM-DD.md (소통 감사 로그)"]
     PR["GitHub Pull Request (develop 대상)"]
     Devlog["Notion 학습일지 DB (일일 회고)"]
 
     %% 흐름 연결
-    User -->|"기획서 등록"| Specs
-    Specs -->|"탐색 및 코어루프 검토"| Designer
-    Designer -->|"태스크 세분화"| Worklist
-    Designer -->|"상태 갱신"| Status
+    User -->|"작업 지시 / 기획서 분석"| PM
+    PM -->|"명령 라우팅 및 브랜치 지정"| Status
+    PM -->|"기획 분석 지시"| Designer
+    Specs -->|"Strict Read-Only 분석"| Designer
+    Designer -->|"상세 명세서 작성"| TechSpec
+    Designer -->|"4단계 태스크 등록"| Worklist
 
-    User -->|"고품질 에셋 요청 시"| Artist
-    Artist -->|"2D/오디오/3D/파티클 생성"| Imports
-    Artist -->|"에셋 연결 제안 등록"| Status
+    PM -->|"브랜치 분리 요청"| GitManager
+    GitManager -->|"develop 패치 & 브랜치 전환"| GitManager
+    GitManager -->|"브랜치 준비 완료 알림"| Developer
 
-    User -->|"'작업 하나 진행해줘'"| Developer
-    Developer -->|"작업 확인"| Worklist
-    Developer -->|"C# 구현 및 에셋 바인딩"| Prefabs
-    Developer -->|"관계도 갱신"| ArchMap
-    Developer -->|"CLI 컴파일 자가검증"| Developer
+    Developer -->|"1. 브랜치 일치 검증 (Safety Gate)"| Status
+    Developer -->|"2. C# 코딩 & CLI 컴파일 검증"| Developer
+    Developer -->|"3. 작업 브랜치 직접 커밋 [feat]"| Developer
+    Developer -->|"4. 구현문서 및 아키텍처 갱신"| ImplDoc
+    Developer -->|"5. PR 발행 요청 인계"| GitManager
 
-    Developer -->|"커밋 / PR 요청"| GitManager
-    GitManager -->|"Worktree 격리 및 .meta 검증"| GitManager
-    GitManager -->|"PR 생성"| PR
-    GitManager -->|"상태 갱신"| Status
+    GitManager -->|"커밋 확인 & 원격 푸시 & PR 생성"| PR
+    GitManager -->|"상태 갱신 & QA 직접 인계"| QA
 
-    PR -->|"검수 요청"| QA
-    QA -->|"4대 검수 (NUnit/에러/코어루프/스크린샷)"| QA
-    QA -->|"검수 통과 코멘트"| PR
-    QA -->|"- [x] 태스크 (PR #nn) 체크"| Worklist
-    QA -->|"상태 갱신"| Status
+    QA -->|"1. NUnit 테스트 작성 & 직접 커밋 [test]"| QA
+    QA -->|"2. 4대 필수 런타임 검수"| QA
+    QA -->|"3. PR 승인 코멘트 / 머지"| PR
+    QA -->|"4. 태스크 체크 [- [x] (PR #nn)]"| Worklist
+    QA -->|"5. 문서 동기화 인계"| GitManager
+    QA -->|"6. 1루프 최종 완료 보고"| PM
 
-    QA -->|"검수 완료 보고"| User
-    User -->|"최종 Merge"| PR
-    PR -->|"머지 완료 감지 및 Worktree 정리"| GitManager
-
-    User -->|"'오늘 작업 마칠게'"| Devlog
-    
-    %% 실시간 소통 로깅 (모든 전환 시 1줄 누적)
-    Designer -.->|"log_comm.js"| CommLog
-    Artist -.->|"log_comm.js"| CommLog
-    Developer -.->|"log_comm.js"| CommLog
-    GitManager -.->|"log_comm.js"| CommLog
-    QA -.->|"log_comm.js"| CommLog
+    PM -->|"사용자 최종 종합 보고"| User
+    User -->|"'오늘 작업 마칠게'"| PM
+    PM -->|"이슈 체크 & Notion 일지 자동 작성"| Devlog
 ```
 
 ---
 
 ## 2. 1개 작업 단위 완결 시퀀스 (Single Task Loop Sequence)
 
-1개의 작업(Task)은 `Developer ➔ GitManager ➔ QA`의 완전한 검수 및 승인 사이클을 마쳤을 때 1회 완결됩니다:
+1개의 작업(Task)은 `PM 브랜치 지정 ➔ GitManager 브랜치 분리 ➔ Developer 브랜치 검증 및 직접 커밋 ➔ GitManager PR 발행 ➔ QA 검수 및 승인 ➔ PM 종합 보고` 사이클로 완결됩니다:
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor User as 사용자
-    participant Dev as Developer
+    participant PM as PM
     participant GM as GitManager
+    participant Dev as Developer
     participant QA as QA
     participant Git as GitHub (develop)
-    participant Log as agent_comm_YYYY-MM-DD.md
 
-    User->>Dev: "작업 하나 진행해줘"
-    Note over Dev: worklist.md 최상위 미완료 태스크 선택
-    Dev->>Dev: C# 코드 작성 & 프리미티브/에셋 결합 프리팹 조립
-    Dev->>Dev: ARCHITECTURE.md 객체 관계도 갱신
-    Dev->>Dev: unity-cli-runner 백그라운드 사전 컴파일 검증
-    Dev->>Log: log_comm.js ("Developer -> GitManager: PR 요청")
-    Dev->>GM: C# 및 프리팹 조립 완료, PR 요청
+    User->>PM: "작업 하나 진행해줘"
+    PM->>PM: worklist.md 최우선 태스크 선정 및 브랜치명(feat/기능명) 확정
+    PM->>GM: feat/기능명 브랜치 분리 요청
+    GM->>GM: git checkout develop && git pull && git checkout -b feat/기능명
+    GM->>Dev: feat/기능명 브랜치 분리 및 체크아웃 완료
 
-    GM->>GM: Worktree 격리 생성 & .meta 파일 무결성 검증
-    GM->>Git: 작업 브랜치 푸시 및 develop 대상 PR 생성
-    GM->>Log: log_comm.js ("GitManager -> QA: PR #nn 검수 요청")
-    GM->>QA: PR #nn 생성 완료, 검수 인계
+    Note over Dev: [Safety Gate] 현재 브랜치 == status.md 작업브랜치 검증
+    Dev->>Dev: C# 코드 작성 & unity-cli-runner 사전 컴파일 검증
+    Dev->>Dev: git commit -m "[feat] : 기능명 구현 완료" (직접 커밋)
+    Dev->>Dev: docs/implementations/ 작성 & ARCHITECTURE.md 갱신
+    Dev->>GM: 직접 커밋 완료, PR 발행 요청 (Direct Handoff)
 
-    Note over QA: QA 4대 필수 검수 실행
-    QA->>QA: 1. NUnit 단위 테스트 (Dual Mode)
-    QA->>QA: 2. 콘솔 에러 0건 & Search API / 컨벤션 검증
-    QA->>QA: 3. 코어 루프 런타임 구동 검증
-    QA->>QA: 4. 기능 추가 증빙 스크린샷 캡처
-    
-    QA->>Git: PR에 4대 검수 통과 승인 코멘트 등록
-    QA->>QA: worklist.md에 "- [x] [태스크명] (PR #nn)" 체크
-    QA->>Log: log_comm.js ("QA -> GitManager: QA 승인 완료")
-    QA->>User: QA 4대 검수 통과 보고 (사용자 머지 대기)
+    GM->>Git: git push -u origin feat/기능명 && PR 생성
+    GM->>QA: PR #nn 생성 완료, QA 검수 요청 (Direct Handoff)
 
-    User->>Git: PR 최종 Merge
-    Git->>GM: 머지 완료 확인
-    GM->>GM: Worktree 및 로컬 작업 브랜치 삭제 정리
+    Note over QA: QA 4대 검수 및 NUnit 테스트
+    QA->>QA: NUnit 테스트 코드 작성 & git commit -m "[test] : ..." (직접 커밋)
+    QA->>QA: 4대 런타임 무결성 검수 (에러0, 오버라이드0, MissingRef0)
+    QA->>Git: PR 승인 (Approve)
+    QA->>QA: worklist.md [- [x] (PR #nn)] 완료 체크
+    QA->>PM: 1루프 검수 통과 완료 보고
+
+    PM->>User: 1루프 최종 완료 마크다운 종합 보고
 ```
 
 ---
 
-## 3. 5대 전문 에이전트 R&R 매트릭스
+## 3. 6대 전문 에이전트 R&R 매트릭스
 
-| 에이전트 | 단일 전담 역할 (Single Responsibility) | 주요 도구 및 전담 규칙 | 핵심 산출물 |
+| 에이전트 | 단일 전담 역할 (Single Responsibility) | 주요 전담 스킬 (HOW) | 핵심 산출물 |
 | :--- | :--- | :--- | :--- |
-| **`Designer`** | 기획서 정밀 분석, 코어루프 검토, 태스크 세분화 | `docs/specs/`, `GEMINI.md` | `worklist.md`, `status.md` |
-| **`Artist`** | AI 2D/3D/오디오 리소스 생성, Particle System, Animator Controller | 나노바나나, UnityMCP, `asset_generation_rule.md` | `Assets/_Imports/`, `status.md` 에셋 제안 |
-| **`Developer`** | C# 코딩, 프리미티브 더미 조립, Search API 금지/보류, CLI 사전검수 | `csharp_coding_rule.md`, `unity-cli-runner` | `PF_*.prefab`, `docs/ARCHITECTURE.md` |
-| **`QA`** | NUnit 테스트, 콘솔/Search API 검증, 코어루프 검증, 스크린샷 캡처 | UnityMCP, `unity-cli-runner` | PR 승인 코멘트, `worklist.md [x] (PR #nn)` |
-| **`GitManager`** | Git Worktree 격리, .meta 검증, 커밋/푸시, PR 생성 및 머지 정리 | `git_rule.md`, GitHub MCP | GitHub PR, 클린 저장소 |
+| **`PM`** | 사용자 명령 라우팅, 브랜치 지정, 이슈 동기화, 최종 종합 보고 | `unity-pm-orchestration`, `github-issue-sync`, `unity-devlog-workflow` | 종합 보고서, Notion 일지 |
+| **`Designer`** | 원본 기획서 분석, 4단계 태스크 도출, 기획 제안 | `unity-design-workflow` | `docs/tech_spec/`, `worklist.md` |
+| **`Artist`** | 2D 스프라이트, UI/아이콘, Atlas, 3D, 사운드, VFX, 애니메이터 | `unity-art-asset-workflow`, `unity-vfx-anim-workflow` | `Assets/_Imports/`, `PF_VFX_*.prefab` |
+| **`Developer`** | 브랜치 검증, C# 코딩/리팩토링, 직접 커밋, 구현문서 작성 | `unity-dev-workflow`, `unity-modify-workflow`, `unity-coding-rule` | C# 코드, `docs/implementations/` |
+| **`GitManager`** | 브랜치 분리/전환, PR 발행, 공통 문서 동기화(Stash & Return), Issue 관리 | `git-branch-setup`, `git-pr-workflow`, `git-doc-sync` | 작업 브랜치, GitHub PR, 이슈 관리 |
+| **`QA`** | NUnit 작성 및 직접 커밋, 4대 런타임 검수, PR 승인, 정합성 감사 | `unity-qa-workflow`, `unity-spec-audit` | `Assets/Tests/`, PR 승인 |
 
 ---
 
-## 4. 이원화 관리 체계 (Dual-Tracking System)
-
-```mermaid
-graph LR
-    subgraph StatusTracking["1. 실시간 상태 제어판 (docs/work/status.md)"]
-        S1["최신 1줄 상태 실시간 덮어쓰기"]
-        S2["AI 에이전트 간 FSM 진행 가능 여부 판단"]
-        S3["기획 필요항목 & 개발 요소 제안항목(- [ ] 양식) 관리"]
-    end
-
-    subgraph AuditLogging["2. 실시간 소통 감사 로그 (docs/logs/agent_comm_*.md)"]
-        L1["에이전트 간 인계 시마다 1줄씩 타임라인 누적"]
-        L2["발신자 / 수신자 / 소통유형 / 핵심메시지 기록"]
-        L3["사용자의 실시간 협업 과정 감사(Audit) 및 검증"]
-    end
-```
-
----
-
-## 5. 사용자 작업 실행 명령어 빠른 참조 (Command Reference)
+## 4. 사용자 작업 실행 명령어 빠른 참조 (Command Reference)
 
 | 명령어 구분 | 사용자 입력 예시 | 에이전트 동작 및 처리 결과 |
 | :--- | :--- | :--- |
-| **단일 작업** | *"작업 하나 진행해줘"*, *"다음 작업 진행해줘"* | `worklist.md`의 미완료 최상위 1개 태스크 루프 완결 |
+| **단일 작업** | *"작업 하나 진행해줘"*, *"다음 작업 진행해줘"* | 브랜치 지정 ➔ 개발 ➔ 커밋 ➔ PR ➔ QA 검수 1루프 완결 및 종합 보고 |
 | **배치 작업** | *"3개의 작업 진행해줘"*, *"N개의 작업 진행해줘"* | 최상위부터 N개 태스크를 순차적으로 1개 루프씩 연계 완수 |
 | **일괄 지정** | *"[키워드] 작업들 진행해줘"* | 일치하는 태스크 목록 확인 질문 ➔ 승인 후 전체 완결 |
-| **상태 질의** | *"현재 작업상태는?"*, *"어디까지 됨?"* | 진행 중 / 반려 대기 / 착수 가능 3대 분기 보고 |
-| **기획 수정** | *"기획서 [기능명] 수정했으니 반영해줘"* | `Designer` 재분석 ➔ `worklist.md` [수정] 태스크 등록 ➔ 개발 1루프 수행 |
-| **안전 리팩토링** | *"[기능명] 코드 직관적으로 리팩토링해줘"* | `Developer` 구조 해설 ➔ `refactor` 격리 브랜치 개발 ➔ `QA` 회귀 검수 |
-| **작업 종료** | *"오늘 작업 마칠게"*, *"개발일지 작성해줘"* | Notion `학습일지` DB에 일지 자동 생성 ➔ 접힌 토글 AI 피드백 부착 |
-
----
-
-## 6. 프로젝트 디렉토리 구조 (Directory Layout)
-
-```
-TestMCP/
-├── .agents/
-│   ├── agents/             # 5대 전문 에이전트 지침서 (designer, artist, developer, qa, git_manager)
-│   ├── rules/              # 4대 표준 규칙 (csharp, git, unity_folder, asset_generation)
-│   └── skills/             # 3대 전용 스킬 (unity-cli-runner, logger, unity-devlog-workflow)
-├── Assets/
-│   ├── _Imports/           # [Submodule 대상] 외부 원본 리소스 (Audio, Fonts, Models, Textures)
-│   ├── Animations/         # 애니메이션 클립(.anim), 컨트롤러(.controller)
-│   ├── Materials/          # 머티리얼(.mat)
-│   ├── Prefabs/            # 독립 완제품 프리팹 (PF_*.prefab)
-│   ├── Scenes/             # 씬 파일 (*Scene.unity, StageX-Y.unity)
-│   ├── ScriptableObjects/  # 데이터 SO 에셋 (SO_*.asset)
-│   ├── Scripts/            # C# 소스 코드
-├── docs/
-│   ├── screenshots/        # QA 검수 증빙 캡처 이미지
-│   ├── specs/              # 기획서 투입 디렉토리 (Drop-in Directory)
-│   ├── work/               # 실시간 상태판 (status.md) 및 태스크 체크리스트 (worklist.md)
-│   ├── logs/               # 일일 에이전트 실시간 소통 감사 로그 (agent_comm_*.md)
-│   ├── PROJECT_SPEC.md     # GitHub / Notion / Unity 환경 설정 명세서
-│   ├── ARCHITECTURE.md     # 객체 상호작용, 스포너, 이벤트 흐름 총괄 관계도
-│   └── INDEX.md            # 프로젝트 마스터 색인
-├── GEMINI.md               # 전역 에이전트 공통 규칙 및 인텐트 라우팅
-└── README.md               # 프레임워크 메인 안내 및 아키텍처 다이어그램
-```
-
----
-
-## 7. 빠른 시작 가이드 (Quick Start Guide)
-
-1. **환경 설정**:
-   - [`docs/PROJECT_SPEC.md`](file:///C:/Users/KGA1/Desktop/TestMCP/docs/PROJECT_SPEC.md)를 열고 본인의 GitHub 저장소 정보, Notion Database ID, Unity 설치 경로를 입력합니다.
-2. **기획서 등록**:
-   - [`docs/specs/`](file:///C:/Users/KGA1/Desktop/TestMCP/docs/specs/) 폴더에 기획서(예: `01_player_movement.md`)를 작성하여 넣고 *"기획서 분석해줘"*를 호출합니다.
-3. **개발 가동**:
-   - `Designer`가 기획 분석을 완료하면 *"작업 하나 진행해줘"* 또는 *"3개의 작업 진행해줘"*를 입력하여 자율 개발 사이클을 가동합니다.
-4. **일일 종료**:
-   - 개발을 마치고 퇴근할 때 *"오늘 작업 마칠게"*라고 말하면 Notion 학습일지가 자동으로 생성됩니다.
+| **이슈 동기화** | *"이슈 체크해줘"*, *"이슈 확인해줘"* | [반려] Close, [수락]➔[착수] worklist 등록, [완료] Close, [제안] 대기건수 보고 |
+| **정합성 감사** | *"기획/코드/문서 검수해줘"*, *"감사해줘"* | QA가 기획 ➔ 코드 ➔ 구현문서 ➔ 관계도 삼각 정합성 정밀 감사 |
+| **작업 종료** | *"오늘 작업 마칠게"*, *"개발일지 작성해줘"*, *"퇴근"* | 이슈 상태 점검 ➔ Notion `학습일지` DB에 자동 일지 및 토글 피드백 생성 |

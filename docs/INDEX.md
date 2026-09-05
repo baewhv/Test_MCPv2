@@ -1,13 +1,13 @@
-﻿# 기술 및 기획 문서 마스터 색인 (Technical & Specification Index)
+# 기술 및 기획 문서 마스터 색인 (Technical & Specification Index)
 
-이 문서는 프로젝트 내의 모든 사용자 원본 기획서, 기획 상세 명세서, 개별 구현 기술문서, 객체 아키텍처 관계도 및 실시간 작업 문서를 총괄 색인화하는 순수 기술 문서 마스터 색인입니다.
+이 문서는 프로젝트 내의 모든 사용자 원본 기획서, 기획 상세 명세서, 개별 구현 기술문서, 객체 아키텍처 관계도, 실시간 작업 문서 및 16대 전담 스킬을 총괄 색인화하는 순수 기술 문서 마스터 색인입니다.
 (※ 프로젝트 전역 운영 규칙, 환경 설정 및 문서 권한은 `GEMINI.md` 및 `PROJECT_SPEC.md`를 따릅니다.)
 
 ---
 
 ## 1. 사용자 원본 기획서 (Specifications - Strict Read-Only)
 - [기획서 등록 가이드 및 템플릿](./specs/README.md)
-- *(사용자가 `docs/specs/`에 등록한 게임 기획서 목록이 이곳에 색인화됩니다)*
+- *(사용자가 `docs/specs/`에 등록한 게임 기획서 원본이 이곳에 색인화됩니다)*
 
 ---
 
@@ -29,10 +29,21 @@
 ---
 
 ## 4. 실시간 개발 상태 및 태스크 관리 (Work & Status)
-- [현재 개발/기획 진행 상태 (status.md)](./work/status.md): AI 실시간 FSM 상태 제어 현황판
+- [현재 개발/기획 진행 상태 (status.md)](./work/status.md): AI 실시간 FSM 상태 제어 현황판 및 작업 브랜치 명시
 - [개발 작업 목록 (worklist.md)](./work/worklist.md): 사용자 최우선 지시 사항 및 세분화 구현 태스크 체크리스트
 
 ---
 
-## 5. 아키텍처 피드백 및 회고 (Feedback & Retrospectives)
+## 5. 16대 전담 스킬 마스터 목록 (.agents/skills/)
+- **PM**: `unity-pm-orchestration`, `github-issue-sync`, `unity-devlog-workflow`
+- **Designer**: `unity-design-workflow`
+- **Artist**: `unity-art-asset-workflow`, `unity-vfx-anim-workflow`
+- **Developer**: `unity-dev-workflow`, `unity-modify-workflow`, `unity-coding-rule`, `unity-work-rule`
+- **GitManager**: `git-branch-setup`, `git-pr-workflow`, `git-doc-sync`
+- **QA**: `unity-qa-workflow`, `unity-spec-audit`
+- **공통 인프라**: `agent-communication-logger`, `unity-cli-runner`
+
+---
+
+## 6. 아키텍처 피드백 및 회고 (Feedback & Retrospectives)
 - [에이전트 아키텍처 피드백 폴더 (`docs/llm_architecture_feedback/`)](./llm_architecture_feedback/): 시스템 구조 및 협업에 대한 기술 회고/피드백 보관소

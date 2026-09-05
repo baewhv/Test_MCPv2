@@ -1,4 +1,4 @@
----
+﻿---
 name: unity-work-rule
 description: 씬 오버라이드 0건(Zero-Override), 독립 완제품 프리팹(PF_*) 우선 조립, 인스펙터 직렬화 바인딩, Missing Reference 방지 및 에디터 스크립팅 제한을 준수하는 유니티 엔진 작업 스킬
 ---

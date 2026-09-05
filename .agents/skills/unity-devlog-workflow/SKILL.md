@@ -1,4 +1,4 @@
----
+﻿---
 name: unity-devlog-workflow
 description: >-
   작업 종료 시 Notion "학습일지" 캘린더 데이터베이스에 당일 구현 내역 및 Git 커밋 요약 일지 페이지를 자동 생성하고,
@@ -67,3 +67,5 @@ description: >-
   }
 }
 ```
+
+

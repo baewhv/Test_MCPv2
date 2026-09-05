@@ -1,4 +1,4 @@
----
+﻿---
 name: unity-coding-rule
 description: 유니티 C# 스크립트 작성 시 [SerializeField] private 직렬화 캡슐화, OnDisable 이벤트 해제, Fake Null 검사, Animator.StringToHash 캐싱, 부하 유발 Search API 제한, 네임스페이스(namespace) 사용 일체 금지 및 TestCode 표준을 준수하는 C# 코딩 표준 스킬
 ---
@@ -50,17 +50,13 @@ description: 유니티 C# 스크립트 작성 시 [SerializeField] private 직�
 
 ---
 
-## 5. 테스트 코드(TestCode) 작성 주체 및 폴더 분류 표준 (Test Code Standards)
-1. **테스트 코드 작성 주체 및 원칙 (QA 전담 원칙)**:
-   - **QA 에이전트 독점 전담**: 모든 NUnit 단위 테스트(`Assets/Tests/Editor/`) 및 통합 테스트(`Assets/Tests/Runtime/`) 코드는 **`QA` 에이전트가 독점 전담**하여 작성, 보강 및 실행합니다.
-   - **Developer 작성 일체 금지**: `Developer`는 테스트 코드(`*Tests.cs`)를 직접 작성하거나 수정하지 않으며, 순수 제품 코드 구현, 프리팹 조립 및 `compile` 사전 검증에만 집중합니다.
-   - **블랙박스 작성 원칙**: QA는 `docs/tech_spec/` 명세와 `ARCHITECTURE.md`의 API 계약을 기반으로 블랙박스 관점에서 테스트 케이스를 설계하고 검증합니다.
-2. **폴더 분류 기준**:
+## 5. 테스트 코드(TestCode) 작성 및 폴더 분류 표준 (Test Code Standards)
+1. **폴더 분류 기준**:
    - **`Assets/Tests/Editor/` (EditMode Tests)**: 유니티 엔진 런타임 없이 C# 순수 로직, 수학 공식, ScriptableObject 데이터 정합성, 상태 머신 전이를 초고속 검증하는 단위 테스트.
    - **`Assets/Tests/Runtime/` (PlayMode Tests)**: 씬 로드, 물리 충돌(`Collider2D`), 스포너 생성 및 풀링 수명주기를 검증하는 통합 테스트.
-3. **테스트 파일 명명 컨벤션**:
+2. **테스트 파일 명명 컨벤션**:
    - 반드시 **`[대상클래스명]Tests.cs`** 형식으로 작성합니다. (예: `PlayerShootingTests.cs`, `EnemyBaseTests.cs`)
-4. **NUnit 테스트 작성 표준**:
+3. **NUnit 테스트 작성 표준**:
    - `[TestFixture]`, `[SetUp]`, `[TearDown]`, `[Test]` 애트리뷰트를 사용하며, 검증문은 `Assert.AreEqual()`, `Assert.IsTrue()`, `Assert.IsNotNull()`을 사용합니다.
 
 ---
