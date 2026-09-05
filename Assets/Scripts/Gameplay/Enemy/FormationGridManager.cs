@@ -204,6 +204,30 @@ namespace Galaga.Gameplay.Enemy
         }
 
         /// <summary>
+        /// 모든 슬롯 배열을 반환합니다.
+        /// </summary>
+        public FormationSlot[] GetAllSlots()
+        {
+            return _slots != null ? _slots.ToArray() : Array.Empty<FormationSlot>();
+        }
+
+        /// <summary>
+        /// 특정 적이 점유하고 있는 슬롯을 검색합니다.
+        /// </summary>
+        public FormationSlot FindSlotByEnemy(EnemyBase enemy)
+        {
+            if (enemy == null || _slots == null) return null;
+            for (int i = 0; i < _slots.Count; i++)
+            {
+                if (_slots[i].Occupant == enemy)
+                {
+                    return _slots[i];
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
         /// 전역 인덱스(0~39)로 슬롯을 가져옵니다.
         /// </summary>
         public FormationSlot GetSlotByIndex(int index)

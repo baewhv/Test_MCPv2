@@ -45,7 +45,9 @@ namespace Galaga.Gameplay.Enemy
         public EnemyState CurrentState => _currentState;
         public int CurrentHP => _currentHP;
         public bool IsDead => _currentState == EnemyState.Dead || _currentHP <= 0;
+        public bool IsAlive => !IsDead;
         public EnemyType Type => _enemyData != null ? _enemyData.Type : EnemyType.Zako;
+        public EnemyType EnemyType => Type;
 
         private void Awake()
         {

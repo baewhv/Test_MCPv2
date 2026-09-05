@@ -28,7 +28,7 @@ namespace Galaga.Tests
 
             _playerObject = new GameObject("TestPlayer");
             _playerShooting = _playerObject.AddComponent<PlayerShooting>();
-            _playerShooting.BulletPrefab = _bulletPrefab;
+            _playerShooting.BulletPrefab = _bulletPrefab.GetComponent<PlayerBullet>();
             _playerShooting.PlayAreaManager = _playAreaManager;
             _playerShooting.FireCooldown = 0f;
             _playerShooting.InitializePool();

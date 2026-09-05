@@ -42,7 +42,8 @@ namespace Galaga.Gameplay.Combat
             set
             {
                 _speed = value;
-                if (_rigidbody2D != null && gameObject.activeSelf)
+                SetupComponents();
+                if (_rigidbody2D != null)
                 {
                     _rigidbody2D.velocity = _direction * _speed;
                 }
@@ -51,8 +52,22 @@ namespace Galaga.Gameplay.Combat
 
         public int Damage => _damage;
         public Vector2 Direction => _direction;
-        public Rigidbody2D Rigidbody2D => _rigidbody2D;
-        public BoxCollider2D BoxCollider2D => _boxCollider2D;
+        public Rigidbody2D Rigidbody2D
+        {
+            get
+            {
+                SetupComponents();
+                return _rigidbody2D;
+            }
+        }
+        public BoxCollider2D BoxCollider2D
+        {
+            get
+            {
+                SetupComponents();
+                return _boxCollider2D;
+            }
+        }
 
         public PlayAreaManager PlayAreaManager
         {
@@ -77,7 +92,7 @@ namespace Galaga.Gameplay.Combat
 
             SetupComponents();
 
-            if (_rigidbody2D != null && gameObject.activeSelf)
+            if (_rigidbody2D != null)
             {
                 _rigidbody2D.velocity = _direction * _speed;
             }
@@ -101,7 +116,7 @@ namespace Galaga.Gameplay.Combat
             }
         }
 
-        private void SetupComponents()
+        public void SetupComponents()
         {
             if (_rigidbody2D == null)
             {
