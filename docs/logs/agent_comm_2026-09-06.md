@@ -11,3 +11,5 @@
 | 01:58:16 | QA | QA | 검수 착수 | PR #12 Zero-Override 및 탄환 Rigidbody2D QA 4대 검수 절차 착수 |
 | 02:03:40 | QA | GitManager | QA 승인 | Zero-Override 및 탄환 Rigidbody2D PR #12 QA 4대 검수 통과, worklist [x] 완료 및 머지 대기 |
 | 02:18:30 | Developer | GitManager | PR 요청 | Task 4-1 점수 및 익스텐드 시스템 C# 구현 완료, PR 발행 요청 |
+| 02:19:53 | QA | QA | 검수 착수 | [Task 4-1 점수 및 익스텐드 시스템] QA 4대 검수 절차 착수 |
+| 02:28:53 | QA | GitManager | QA 승인 | Task 4-1 점수 및 익스텐드 시스템 PR #13 QA 4대 검수 통과, worklist [x] 완료 및 머지 대기 |

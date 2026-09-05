@@ -215,6 +215,7 @@ namespace Galaga.Gameplay.Enemy
         /// </summary>
         public void Die()
         {
+            bool isDiving = (_currentState == EnemyState.Diving || _currentState == EnemyState.Returning);
             SetState(EnemyState.Dead);
 
             if (_pathFollower != null)
@@ -229,7 +230,6 @@ namespace Galaga.Gameplay.Enemy
 
             if (ScoreManager.Instance != null)
             {
-                bool isDiving = (_currentState == EnemyState.Diving || _currentState == EnemyState.Returning);
                 ScoreManager.Instance.AddEnemyScore(Type, isDiving, _escortCount);
             }
 

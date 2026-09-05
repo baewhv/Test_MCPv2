@@ -1,7 +1,7 @@
 # 개발 및 기획 진행 상태 (Status)
 
 ## [현재 상태]
-- **진행 상태**: [Developer] [Task 4-1 점수 및 익스텐드 시스템] C# 구현 및 커밋 완료 ➔ git_manager에게 PR 발행 인계
+- **진행 상태**: [QA] [Task 4-1 점수 및 익스텐드 시스템] QA 4대 검수 통과 및 worklist [x] 완료 ➔ 사용자 최종 Merge 대기
 - **작업 브랜치**: `feat_phase4_score_extend_system`
 
 ---

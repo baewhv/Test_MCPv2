@@ -112,6 +112,7 @@ namespace Galaga.Gameplay.Score
         /// <param name="playerHealth">연동할 PlayerHealth 참조</param>
         public void Initialize(int initialHighScore = 20000, PlayerHealth playerHealth = null)
         {
+            Instance = this;
             _initialHighScore = initialHighScore;
             _highScore = initialHighScore;
             _currentScore = 0;
@@ -163,7 +164,6 @@ namespace Galaga.Gameplay.Score
                     return isDiving ? 160 : 80;
 
                 case EnemyType.BossGalaga:
-                case (EnemyType)2: // Boss
                     if (!isDiving)
                     {
                         return 150;
