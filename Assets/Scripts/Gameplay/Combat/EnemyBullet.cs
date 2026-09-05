@@ -124,6 +124,7 @@ namespace Galaga.Gameplay.Combat
             }
             if (_rigidbody2D != null)
             {
+                _rigidbody2D.bodyType = RigidbodyType2D.Dynamic;
                 _rigidbody2D.gravityScale = 0f;
                 _rigidbody2D.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
                 _rigidbody2D.freezeRotation = true;
