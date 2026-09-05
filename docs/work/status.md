@@ -1,8 +1,8 @@
 # 개발 및 기획 진행 상태 (Status)
 
 ## [현재 상태]
-- **진행 상태**: [QA] [탄환 Rigidbody2D 및 Zero-Override] QA 4대 검수 통과 및 worklist [x] 완료 ➔ 사용자 최종 Merge 대기
-- **작업 브랜치**: `fix/bullet_rigidbody_movement`
+- **진행 상태**: [GitManager] feat_phase4_score_extend_system 브랜치 분리 완료 ➔ developer 작업 진행 가능
+- **작업 브랜치**: `feat_phase4_score_extend_system`
 
 ---
 
