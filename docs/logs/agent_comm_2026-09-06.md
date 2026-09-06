@@ -35,4 +35,9 @@
 | 16:34:29 | GitManager | QA | QA 검수 요청 | Task 4-4 동적 난이도 랭크 시스템 PR #17 생성 완료, QA 4대 검수 요청 |
 | 16:34:50 | QA | GitManager | QA 승인 | Task 4-4 동적 난이도 랭크 시스템 PR #17 QA 4대 검수 통과 (135/135 Pass), worklist [x] 완료 및 머지 대기 |
 | 17:05:12 | 사용자 | PM | PR 머지 완료 | PR #17 머지 완료 알림 및 차기 작업 진행 요청 |
-
+| 17:27:56 | GitManager | Developer | 브랜치 준비 완료 | feat_phase5_boss_tractor_beam 브랜치 분리 및 원격 발행 완료, Developer 작업 착수 요청 |
+| 17:34:07 | Developer | GitManager | PR 요청 | [Task 5-1 보스 갤러그 트랙터 빔 발사 및 콜라이더 전개] C# 구현 및 프리팹 조립 완료, Clean PR 발행 요청 |
+| 17:34:38 | GitManager | QA | QA 검수 요청 | Task 5-1 보스 갤러그 트랙터 빔 PR #18 생성 완료, QA 4대 검수 요청 |
+| 17:35:00 | QA | QA | 검수 착수 | [Task 5-1 보스 갤러그 트랙터 빔] NUnit 테스트 16종 작성 및 4대 필수 검수 착수 |
+| 17:40:50 | QA | GitManager | QA 승인 | Task 5-1 보스 갤러그 트랙터 빔 PR #18 QA 4대 검수 통과 (151/151 Pass), 머지 대기 |
+| 17:41:10 | PM | 사용자 | PR 머지 요청 | Task 5-1 PR #18 QA 4대 검수 100% 통과(151/151 Pass), 사용자 수동 머지 요청 |

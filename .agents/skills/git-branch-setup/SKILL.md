@@ -41,3 +41,4 @@ git pull origin develop
    node .agents/skills/agent-communication-logger/scripts/log_comm.js --from "GitManager" --to "Developer" --type "브랜치 준비" --msg "feat/[기능명] 브랜치 분리 및 로컬 체크아웃 검증 완료, 개발 착수 가능"
    ```
 2. PM에게 실제 전환된 브랜치명(`feat/[기능명]`)과 함께 결과를 보고하고 턴을 종료합니다.
+
