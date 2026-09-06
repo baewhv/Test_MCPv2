@@ -74,10 +74,7 @@ namespace Galaga.Gameplay.Enemy
                 _collider = GetComponent<Collider2D>();
             }
 
-            if (_enemyData != null)
-            {
-                Initialize(_enemyData);
-            }
+            _propBlock = new MaterialPropertyBlock();
         }
 
         private void OnEnable()
@@ -107,18 +104,14 @@ namespace Galaga.Gameplay.Enemy
         }
 
         /// <summary>
-        /// 적 데이터를 기반으로 체력, 이동속도, 기본 색상 등을 초기화합니다.
+        /// ScriptableObject 데이터 기반으로 적 기체를 초기화합니다.
         /// </summary>
         public void Initialize(EnemyDataSO data)
         {
             _enemyData = data;
             if (_enemyData != null)
             {
-                _currentHP = _enemyData.MaxHP;
-                if (_pathFollower != null)
-                {
-                    _pathFollower.MoveSpeed = _enemyData.MoveSpeed;
-                }
+                _currentHP = _enemyData.MaxHp;
                 ApplyColor(_enemyData.NormalColor);
             }
             else
@@ -127,15 +120,10 @@ namespace Galaga.Gameplay.Enemy
             }
 
             _currentState = EnemyState.Spawning;
-            _escortCount = 0;
-            if (_collider != null)
-            {
-                _collider.enabled = true;
-            }
         }
 
         /// <summary>
-        /// 상태를 명시적으로 전환합니다.
+        /// 적 기체의 현재 상태를 변경하고 이벤트를 발생시킵니다.
         /// </summary>
         public void SetState(EnemyState newState)
         {
@@ -149,15 +137,15 @@ namespace Galaga.Gameplay.Enemy
         }
 
         /// <summary>
-        /// 피격을 처리합니다 (IDamageable 인터페이스 구현).
+        /// 데미지를 적용하고 플래시 연출 및 파괴 처리를 수행합니다.
         /// </summary>
         /// <param name="damage">입힐 데미지 양</param>
-        /// <returns>사망 여부 (true: 사망/격파, false: 생존)</returns>
+        /// <returns>파괴(사망) 여부</returns>
         public bool TakeDamage(int damage = 1)
         {
             if (IsDead)
             {
-                return true;
+                return false;
             }
 
             _currentHP -= damage;
@@ -171,96 +159,70 @@ namespace Galaga.Gameplay.Enemy
             }
             else
             {
-                // 피격 플래시 및 손상 색상 반영
-                Color targetBaseColor = (_enemyData != null && _currentHP < _enemyData.MaxHP)
+                // 보스 1타 피격 시 청색 변색 또는 플래시 연출
+                Color nextColor = (_enemyData != null && _enemyData.Type == EnemyType.BossGalaga && _currentHP == 1)
                     ? _enemyData.DamagedColor
                     : (_enemyData != null ? _enemyData.NormalColor : Color.white);
 
-                TriggerFlash(targetBaseColor);
+                TriggerFlash(nextColor);
                 return false;
             }
         }
 
         /// <summary>
-        /// 현재 상태에 따른 격파 점수를 반환합니다.
-        /// </summary>
-        public int GetCurrentScoreValue()
-        {
-            if (_enemyData == null)
-            {
-                return 50;
-            }
-
-            return _currentState == EnemyState.Formation
-                ? _enemyData.ScoreStay
-                : _enemyData.ScoreDive;
-        }
-
-        /// <summary>
-        /// 편대 진입 완료 시 호출되어 편대 대기 상태로 진입합니다.
-        /// </summary>
-        public void EnterFormation()
-        {
-            SetState(EnemyState.Formation);
-            _escortCount = 0;
-            if (_pathFollower != null)
-            {
-                _pathFollower.Stop();
-            }
-            transform.rotation = Quaternion.identity;
-        }
-
-        /// <summary>
-        /// 적 사망/격파 처리를 수행합니다.
+        /// 적 기체 사망/파괴 시퀀스를 처리합니다.
         /// </summary>
         public void Die()
         {
-            bool isDiving = (_currentState == EnemyState.Diving || _currentState == EnemyState.Returning);
             SetState(EnemyState.Dead);
-
-            if (_pathFollower != null)
-            {
-                _pathFollower.Stop();
-            }
-
-            if (_collider != null)
-            {
-                _collider.enabled = false;
-            }
 
             if (ScoreManager.Instance != null)
             {
-                ScoreManager.Instance.AddEnemyScore(Type, isDiving, _escortCount);
+                ScoreManager.Instance.AddScore(this);
             }
 
             if (ExplosionManager.Instance != null)
             {
-                ExplosionManager.Instance.HandleEnemyDestroyed(this);
+                float size = (_enemyData != null && _enemyData.Type == EnemyType.BossGalaga) ? 2.0f : 1.2f;
+                ExplosionManager.Instance.SpawnExplosion(transform.position, size, 0.4f);
             }
 
             OnDestroyed?.Invoke(this);
             gameObject.SetActive(false);
         }
 
+        /// <summary>
+        /// 진입 또는 다이브 비행 경로를 할당하고 추적을 시작합니다.
+        /// </summary>
+        public void StartPathFollow(BezierCurve curve, float duration, bool alignRotation = true)
+        {
+            if (_pathFollower == null)
+            {
+                _pathFollower = GetComponent<BezierPathFollower>();
+            }
+
+            if (_pathFollower != null)
+            {
+                _pathFollower.SetCurve(curve, duration, alignRotation);
+                _pathFollower.Play();
+            }
+        }
+
         private void HandlePathCompleted()
         {
             if (_currentState == EnemyState.Entering)
             {
-                EnterFormation();
+                SetState(EnemyState.GridHovering);
             }
             else if (_currentState == EnemyState.Diving)
             {
                 SetState(EnemyState.Returning);
             }
-            else if (_currentState == EnemyState.Returning)
-            {
-                EnterFormation();
-            }
         }
 
         private void TriggerFlash(Color restoreColor)
         {
-            if (!gameObject.activeInHierarchy)
+            if (!gameObject.activeSelf)
             {
                 ApplyColor(restoreColor);
                 return;
@@ -277,7 +239,7 @@ namespace Galaga.Gameplay.Enemy
         private IEnumerator FlashRoutine(Color restoreColor)
         {
             Color flashColor = _enemyData != null ? _enemyData.FlashColor : Color.white;
-            float duration = (_enemyData != null && _enemyData.FlashDuration > 0f) ? _enemyData.FlashDuration : 0.15f;
+            float duration = _enemyData != null ? _enemyData.FlashDuration : 0.08f;
 
             ApplyColor(flashColor);
             yield return new WaitForSeconds(duration);
@@ -285,12 +247,11 @@ namespace Galaga.Gameplay.Enemy
             _flashCoroutine = null;
         }
 
-        public void ApplyColor(Color color)
+        private void ApplyColor(Color color)
         {
-            if (_renderer is SpriteRenderer spriteRenderer)
+            if (_renderer == null)
             {
-                spriteRenderer.color = color;
-                return;
+                _renderer = GetComponent<Renderer>();
             }
 
             if (_renderer != null)
@@ -304,6 +265,11 @@ namespace Galaga.Gameplay.Enemy
                 _propBlock.SetColor(BaseColorId, color);
                 _propBlock.SetColor(ColorId, color);
                 _renderer.SetPropertyBlock(_propBlock);
+
+                if (_renderer is SpriteRenderer spriteRenderer)
+                {
+                    spriteRenderer.color = color;
+                }
             }
         }
 
@@ -316,13 +282,17 @@ namespace Galaga.Gameplay.Enemy
 
             if (collision.CompareTag("PlayerBullet") || collision.name.Contains("Bullet"))
             {
-                PlayerBullet bullet = collision.GetComponent<PlayerBullet>();
-                int dmg = bullet != null ? bullet.Damage : 1;
-                TakeDamage(dmg);
-
-                if (bullet != null)
+                if (collision.TryGetComponent<PlayerBullet>(out var bullet))
                 {
-                    bullet.ReturnToPool();
+                    if (bullet.gameObject.activeSelf)
+                    {
+                        TakeDamage(bullet.Damage);
+                        bullet.ReturnToPool();
+                    }
+                }
+                else
+                {
+                    TakeDamage(1);
                 }
             }
         }
@@ -336,13 +306,17 @@ namespace Galaga.Gameplay.Enemy
 
             if (other.CompareTag("PlayerBullet") || other.name.Contains("Bullet"))
             {
-                PlayerBullet bullet = other.GetComponent<PlayerBullet>();
-                int dmg = bullet != null ? bullet.Damage : 1;
-                TakeDamage(dmg);
-
-                if (bullet != null)
+                if (other.TryGetComponent<PlayerBullet>(out var bullet))
                 {
-                    bullet.ReturnToPool();
+                    if (bullet.gameObject.activeSelf)
+                    {
+                        TakeDamage(bullet.Damage);
+                        bullet.ReturnToPool();
+                    }
+                }
+                else
+                {
+                    TakeDamage(1);
                 }
             }
         }

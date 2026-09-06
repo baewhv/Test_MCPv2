@@ -57,6 +57,7 @@ namespace Galaga.Gameplay.Player
         public int MaxLives => _maxLives;
         public bool IsInvincible => _isInvincible;
         public bool IsDead => _isDead;
+        public bool IsAlive => !_isDead;
         public Vector3 RespawnPosition
         {
             get => _respawnPosition;
@@ -247,15 +248,20 @@ namespace Galaga.Gameplay.Player
             {
                 return;
             }
-
             if (collision.CompareTag("EnemyBullet") || collision.name.Contains("EnemyBullet"))
             {
-                EnemyBullet bullet = collision.GetComponent<EnemyBullet>();
-                if (bullet != null)
+                if (collision.TryGetComponent<EnemyBullet>(out var bullet))
                 {
-                    bullet.ReturnToPool();
+                    if (bullet.gameObject.activeSelf)
+                    {
+                        TakeDamage(bullet.Damage);
+                        bullet.ReturnToPool();
+                    }
                 }
-                TakeDamage(1);
+                else
+                {
+                    TakeDamage(1);
+                }
                 return;
             }
 
@@ -271,15 +277,20 @@ namespace Galaga.Gameplay.Player
             {
                 return;
             }
-
             if (other.CompareTag("EnemyBullet") || other.name.Contains("EnemyBullet"))
             {
-                EnemyBullet bullet = other.GetComponent<EnemyBullet>();
-                if (bullet != null)
+                if (other.TryGetComponent<EnemyBullet>(out var bullet))
                 {
-                    bullet.ReturnToPool();
+                    if (bullet.gameObject.activeSelf)
+                    {
+                        TakeDamage(bullet.Damage);
+                        bullet.ReturnToPool();
+                    }
                 }
-                TakeDamage(1);
+                else
+                {
+                    TakeDamage(1);
+                }
                 return;
             }
 

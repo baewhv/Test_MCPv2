@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using Galaga.Core;
-using Galaga.Gameplay.Enemy;
 
 namespace Galaga.Gameplay.Combat
 {
@@ -106,41 +105,36 @@ namespace Galaga.Gameplay.Combat
             }
         }
 
-        public void SetupComponents()
+        private void SetupComponents()
         {
             if (_rigidbody2D == null)
             {
                 _rigidbody2D = GetComponent<Rigidbody2D>();
             }
+            if (_boxCollider2D == null)
+            {
+                _boxCollider2D = GetComponent<BoxCollider2D>();
+            }
+
             if (_rigidbody2D != null)
             {
                 _rigidbody2D.bodyType = RigidbodyType2D.Dynamic;
                 _rigidbody2D.gravityScale = 0f;
                 _rigidbody2D.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
                 _rigidbody2D.freezeRotation = true;
+                _rigidbody2D.interpolation = RigidbodyInterpolation2D.Interpolate;
             }
 
-            if (_boxCollider2D == null)
-            {
-                _boxCollider2D = GetComponent<BoxCollider2D>();
-            }
             if (_boxCollider2D != null)
             {
                 _boxCollider2D.isTrigger = true;
-                _boxCollider2D.size = new Vector2(1.0f, 1.0f);
+                _boxCollider2D.size = new Vector2(1f, 1f);
             }
         }
 
-        private void Start()
+        private void Update()
         {
-            if (_playAreaManager == null)
-            {
-                _playAreaManager = PlayAreaManager.Instance;
-            }
-            if (_playAreaManager == null && Camera.main != null)
-            {
-                _playAreaManager = Camera.main.GetComponent<PlayAreaManager>();
-            }
+            CheckBoundary();
         }
 
         private void FixedUpdate()
@@ -149,46 +143,43 @@ namespace Galaga.Gameplay.Combat
             {
                 _rigidbody2D.linearVelocity = Vector2.up * _speed;
             }
-            CheckBoundary();
-        }
-
-        private void Update()
-        {
-            CheckBoundary();
         }
 
         /// <summary>
-        /// 수직 상향 이동을 수행하고 화면 상단 경계 이탈을 검사합니다 (단위 테스트 및 수동 이동 호환).
+        /// 델타 타임을 기반으로 탄환의 수직 이동 및 경계 검사를 수행합니다 (단위 테스트 및 비물리 환경 지원).
         /// </summary>
+        /// <param name="deltaTime">경과 시간 (초)</param>
         public void Move(float deltaTime)
         {
-            Vector3 pos = transform.position;
-            pos.y += _speed * deltaTime;
-            transform.position = pos;
-
             if (_rigidbody2D != null)
             {
-                _rigidbody2D.position = pos;
-                _rigidbody2D.linearVelocity = Vector2.up * _speed;
+                _rigidbody2D.MovePosition(_rigidbody2D.position + Vector2.up * (_speed * deltaTime));
             }
-
+            else
+            {
+                transform.position += Vector3.up * (_speed * deltaTime);
+            }
             CheckBoundary();
         }
 
-        /// <summary>
-        /// 화면 상단 경계(PlayAreaManager.MaxY 또는 10.5u)를 초과했는지 검사하여 풀에 반환합니다.
-        /// </summary>
         private void CheckBoundary()
         {
-            float maxY = (_playAreaManager != null) ? _playAreaManager.MaxY : 10.5f;
-            if (transform.position.y > maxY || (_rigidbody2D != null && _rigidbody2D.position.y > maxY))
+            float maxY = 10.5f;
+
+            if (_playAreaManager != null)
+            {
+                maxY = _playAreaManager.MaxY;
+            }
+
+            // 상단 경계를 벗어나면 비활성화 및 풀 반환
+            if (transform.position.y > maxY)
             {
                 ReturnToPool();
             }
         }
 
         /// <summary>
-        /// 탄환을 비활성화하고 등록된 풀 콜백에 반환합니다.
+        /// 탄환을 비활성화하고 풀로 반환합니다.
         /// </summary>
         public void ReturnToPool()
         {
@@ -203,7 +194,13 @@ namespace Galaga.Gameplay.Combat
             }
 
             gameObject.SetActive(false);
-            _onDeactivatedCallback?.Invoke(this);
+
+            if (_onDeactivatedCallback != null)
+            {
+                Action<PlayerBullet> callback = _onDeactivatedCallback;
+                _onDeactivatedCallback = null;
+                callback.Invoke(this);
+            }
         }
 
         private void OnTriggerEnter2D(Collider2D collision)
@@ -220,22 +217,16 @@ namespace Galaga.Gameplay.Combat
                 return;
             }
 
-            // 적 충돌 판정 시 데미지 부여 및 풀 반환
+            // 피격 대상(IDamageable) 또는 적 충돌 판정 시 데미지 부여 및 풀 반환
+            if (collision.TryGetComponent<IDamageable>(out var damageable))
+            {
+                damageable.TakeDamage(_damage);
+                ReturnToPool();
+                return;
+            }
+
             if (collision.CompareTag("Enemy") || collision.name.Contains("Enemy"))
             {
-                IDamageable damageable = collision.GetComponent<IDamageable>();
-                if (damageable != null)
-                {
-                    damageable.TakeDamage(_damage);
-                }
-                else
-                {
-                    EnemyBase enemy = collision.GetComponent<EnemyBase>();
-                    if (enemy != null)
-                    {
-                        enemy.TakeDamage(_damage);
-                    }
-                }
                 ReturnToPool();
             }
         }
@@ -253,21 +244,16 @@ namespace Galaga.Gameplay.Combat
                 return;
             }
 
+            // 피격 대상(IDamageable) 또는 적 충돌 판정 시 데미지 부여 및 풀 반환
+            if (other.TryGetComponent<IDamageable>(out var damageable))
+            {
+                damageable.TakeDamage(_damage);
+                ReturnToPool();
+                return;
+            }
+
             if (other.CompareTag("Enemy") || other.name.Contains("Enemy"))
             {
-                IDamageable damageable = other.GetComponent<IDamageable>();
-                if (damageable != null)
-                {
-                    damageable.TakeDamage(_damage);
-                }
-                else
-                {
-                    EnemyBase enemy = other.GetComponent<EnemyBase>();
-                    if (enemy != null)
-                    {
-                        enemy.TakeDamage(_damage);
-                    }
-                }
                 ReturnToPool();
             }
         }
