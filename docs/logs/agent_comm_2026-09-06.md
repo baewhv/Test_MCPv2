@@ -31,6 +31,8 @@
 | 12:42:45 | QA | PM | 최종 완료 보고 | Task 4-3 PR #16 QA 4대 검수 100% 통과(120/120 Pass), 승인 완료 및 머지 대기 |
 | 16:30:26 | PM | GitManager | 기획 인계 | Task 4-4 동적 난이도 랭크 시스템 구현 착수 및 브랜치 분리 요청 |
 | 16:30:42 | GitManager | Developer | 브랜치 준비 | feat_phase4_dynamic_rank 브랜치 분리 및 원격 발행 완료, 개발 착수 가능 |
-| 16:34:10 | Developer | GitManager | PR 요청 | [Task 4-4 동적 난이도 랭크 시스템] C# 구현 및 완제품 프리팹 조립 완료(Proof-of-Commit 확인 완료), Clean PR 발행 요청 |
+| 16:34:10 | Developer | GitManager | PR 요청 | [Task 4-4 동적 난이도 랭크 시스템] C# 구현 및 완제품 프리팹 조립 완료, Clean PR 발행 요청 |
 | 16:34:29 | GitManager | QA | QA 검수 요청 | Task 4-4 동적 난이도 랭크 시스템 PR #17 생성 완료, QA 4대 검수 요청 |
 | 16:34:50 | QA | GitManager | QA 승인 | Task 4-4 동적 난이도 랭크 시스템 PR #17 QA 4대 검수 통과 (135/135 Pass), worklist [x] 완료 및 머지 대기 |
+| 17:05:12 | 사용자 | PM | PR 머지 완료 | PR #17 머지 완료 알림 및 차기 작업 진행 요청 |
+
