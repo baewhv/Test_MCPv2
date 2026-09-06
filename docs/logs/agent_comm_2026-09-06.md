@@ -25,3 +25,7 @@
 | 11:34:00 | QA | QA | 검수 착수 | [IDamageable 피격 파이프라인 디커플링] NUnit 테스트 10종 작성 및 4대 필수 검수 착수 |
 | 11:36:30 | QA | GitManager | QA 승인 | IDamageable 피격 파이프라인 디커플링 PR #15 QA 4대 검수 통과 (101/101 Pass), 머지 진행 |
 | 11:37:30 | QA | PM | 최종 완료 보고 | [Refactor] IDamageable 피격 파이프라인 디커플링 PR #15 QA 4대 검수 통과, 머지 및 worklist.md 갱신 완료 |
+| 12:42:00 | GitManager | Developer | 브랜치 준비 완료 | feat_phase4_challenging_stage 브랜치 확인 및 작업물 정리 |
+| 12:42:30 | Developer | GitManager | PR 요청 | Task 4-3 챌린징 스테이지 구현 및 프리팹 조립 완료, PR 발행 요청 |
+| 12:42:40 | GitManager | QA | QA 검수 요청 | Task 4-3 챌린징 스테이지 PR #16 생성/갱신 완료, QA 검수 요청 |
+| 12:42:45 | QA | PM | 최종 완료 보고 | Task 4-3 PR #16 QA 4대 검수 100% 통과(120/120 Pass), 승인 완료 및 머지 대기 |

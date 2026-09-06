@@ -10,6 +10,7 @@ description: branch 분리(git-branch-setup), 작업 완료 PR 발행(git-pr-wor
 - GitHub Issue의 중복 검사, 신규 등록, 댓글 부착 및 4단계 상태 전이 라이프사이클을 독점 관리합니다.
 
 ## 2. 역할 경계 및 책임 (Boundaries)
+- **로컬 셸 브랜치 분리 및 물리적 검증 필수**: `github/create_branch` 등 원격 API로 브랜치를 우회 생성하지 않으며, 반드시 로컬 터미널(`run_command`)에서 `git checkout -b`를 직접 실행하고 `git branch --show-current` 출력을 검증한 후 인계합니다.
 - **개발/테스트 커밋 관여 금지**: C# 코드 커밋(`[feat]`)은 `Developer`가, 테스트 커밋(`[test]`)은 `QA`가 직접 수행하며, GitManager는 PR 발행 및 브랜치 상태 관리에 집중합니다.
 - **PR 머지 및 develop 임의 푸시 엄격 금지**: PR 머지는 오직 사용자만 수행할 수 있으며, GitManager는 PR을 직접 머지/Close하거나 진행 중 develop에 코드를 푸시하지 않습니다.
 - **unityMCP 도구 호출 엄격 금지**: Git CLI 및 GitHub MCP 도구만 사용합니다.

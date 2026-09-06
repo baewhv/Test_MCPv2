@@ -34,6 +34,10 @@ description: PM 에이전트가 사전 환경 검증, 사용자 작업 의도 �
 2. **1개 작업 완료 사이클 (5단계 Clean PR & Post-Merge 문서 정리)**:
    `[PM] (필요시 git-doc-sync 문서 동기화) ➔ [GitManager] 브랜치 분리 ➔ [Developer] C# 구현 (Assets/만 커밋) ➔ [GitManager] Clean PR 발행 ➔ [QA] 4대 검수 & NUnit 커밋 & PR Approve ➔ [PM] 사용자 머지 대기 알림 ➔ [사용자] GitHub PR 직접 머지 ➔ [PM] Post-Merge 문서 동기화`
 
+3. **서브에이전트 도구 권한 보장 원칙 (Write Tools Standard)**:
+   - PM이 `developer`, `qa`, `git_manager` 등 서브에이전트를 동적으로 정의/호출할 때는 파일 생성/수정 및 CLI 실행을 위해 **`enable_write_tools: true`를 필수로 보장**합니다. 쓰기 권한 누락으로 인해 에이전트가 `unityMCP`를 통한 코드 편집 우회 루프에 빠지는 것을 원천 차단합니다.
+
+
 ### [명령어별 라우팅 규격]
 1. **단일 작업 착수 ("작업 하나 진행해줘", "다음 작업 진행해줘")**:
    - **사전 동기화**: 이전 태스크의 PR이 머지된 상태라면 `git-doc-sync`를 먼저 가동하여 `docs/` 문서를 `develop`에 일괄 커밋/푸시합니다.
@@ -48,15 +52,34 @@ description: PM 에이전트가 사전 환경 검증, 사용자 작업 의도 �
      ```bash
      node .agents/skills/github-issue-sync/scripts/sync_issues.js
      ```
-5. **온디맨드 삼각 정합성 감사 ("기획/코드/문서 검수해줘", "감사해줘")**:
+5. **프로젝트 종합 전체 전수 검수 ("전체 검수해줘", "전수 검사해줘", "릴리즈 검수해줘")**:
+   - `QA` 에이전트에게 `unity-qa-full-inspect` 스킬 실행을 위임하고 5대 전수 점검(정적 분석, Zero-Override 전수, NUnit 전체 통계, 삼각 정합성) 종합 보고서를 수신하여 사용자에게 보고합니다.
+6. **온디맨드 삼각 정합성 감사 ("기획/코드/문서 검수해줘", "감사해줘")**:
    - `QA` 에이전트에게 `unity-spec-audit` 스킬 실행을 위임하고 감사 보고서를 수신합니다.
-6. **일일 작업 종료 및 개발일지 작성 ("오늘 작업 마칠게", "개발일지 작성해줘", "퇴근")**:
+7. **일일 작업 종료 및 개발일지 작성 ("오늘 작업 마칠게", "개발일지 작성해줘", "퇴근")**:
    - **1단계**: `github-issue-sync` 스킬로 당일 이슈 상태를 최종 정리합니다.
    - **2단계**: `unity-devlog-workflow` 스킬을 호출하여 Notion 학습일지 페이지를 생성하고 AI 회고 피드백을 접힌 토글로 부착합니다.
 
+
 ---
 
-## 3. 실시간 작업 상태판 (`docs/work/status.md`) FSM 규격
+## 3. PM 물리적 교차 검증 게이트 (Physical Double-Check Gate)
+
+PM은 서브에이전트의 텍스트 완료 보고("브랜치 분리 완료", "커밋 완료")를 맹신하지 않고, **에이전트 인계 전후로 로컬 터미널 셸 명령을 직접 1회 실행하여 물리적 상태를 교차 검증(Double-Check)**합니다:
+
+1. **브랜치 분리 교차 검증 (GitManager ➔ Developer 인계 전)**:
+   - PM이 직접 실행: `run_command("git branch --show-current")`
+   - *검증*: 출력된 브랜치가 `feat/[기능명]`이 맞는지 확인. `develop`에 머물러 있을 경우 Developer에게 작업을 넘기지 않고 GitManager에게 브랜치 재전환 지시.
+2. **커밋 완료 교차 검증 (Developer ➔ GitManager 인계 전)**:
+   - PM이 직접 실행: `run_command("git status --porcelain")`
+   - *검증*: `Assets/` 폴더 내에 Unstaged/Untracked 소스 코드가 남아있지 않고 깨끗하게 커밋되었는지 확인.
+3. **QA 승인 후 최종 상태 검증 (QA ➔ 사용자 보고 전)**:
+   - PM이 직접 실행: `run_command("git log -1 --oneline")` 및 `run_command("git status")`
+   - *검증*: QA 테스트 커밋이 정상적으로 찍히고 워킹 트리에 충돌/결함이 없는지 확인 후 사용자에게 최종 완료 알림 보고.
+
+---
+
+## 4. 실시간 작업 상태판 (`docs/work/status.md`) FSM 규격
 
 단계 전환 시 `status.md`를 아래 표준 텍스트 규격에 맞춰 갱신합니다:
 ```markdown
@@ -67,7 +90,7 @@ description: PM 에이전트가 사전 환경 검증, 사용자 작업 의도 �
 
 ---
 
-## 4. 1루프 최종 완료 보고 양식 (사용자 PR 머지 대기 알림)
+## 5. 1루프 최종 완료 보고 양식 (사용자 PR 머지 대기 알림)
 
 QA 에이전트의 검수 승인(Approve)이 완료되면 사용자에게 아래 양식으로 간결히 알리고 머지를 대기합니다:
 

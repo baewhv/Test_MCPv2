@@ -10,6 +10,7 @@ description: 사용자 의도 분석, 전문 에이전트 작업 위임, Issue �
 - 사용자가 PR을 머지한 후, 최신 develop 브랜치로 작업 문서를 일괄 커밋/푸시(`git-doc-sync`)하여 루프를 100% 완결합니다.
 
 ## 2. 역할 경계 및 책임 (Boundaries)
+- **물리적 교차 검증 의무 (Double-Check Gate)**: 서브에이전트의 텍스트 완료 보고를 맹신하지 않고, 브랜치 분리 후(`git branch --show-current`), 커밋 후(`git status --porcelain`), 검수 후(`git status`) 로컬 터미널 셸 명령을 직접 1회 실행하여 물리적 상태를 완벽히 검증한 후 다음 단계로 인계 및 보고합니다.
 - **직접 실무(코딩/기획/검수) 관여 금지**: 기획서 분석(`Designer`), 에셋 제작(`Artist`), C# 코딩(`Developer`), Git 관리(`GitManager`), 검수(`QA`)의 세부 실무는 직접 수행하지 않고 위임합니다.
 - **직접 인계 흐름 존중**: 서브에이전트 간 릴레이 단계마다 중간 개입하지 않고, Direct Handoff 완료 후 사용자에게 간결한 머지 대기 알림을 보고합니다.
 

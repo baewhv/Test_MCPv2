@@ -40,14 +40,17 @@ description: 씬 오버라이드 0건(Zero-Override), 독립 완제품 프리팹
 
 ---
 
-## 4. unityMCP/execute_code 오남용 전면 금지 및 네이티브 도구 우선 원칙
-1. **문서 작성 및 Git 조작에 execute_code 사용 절대 금지**:
-   - 마크다운 문서(`*.md`) 작성/수정, 소스 코드 I/O, Git 명령(`git status`, `git commit`, `git push` 등)을 유니티 에디터 C# 리플렉션(`unityMCP/execute_code`)을 통해 실행하는 비효율적 안티패턴을 전면 금지합니다.
-2. **네이티브 도구 사용 의무**:
-   - 파일 생성/수정: 표준 파일 도구(`write_to_file`, `replace_file_content`, OS 파일시스템) 사용
+## 4. unityMCP/execute_code 및 코드 편집 도구 오남용 전면 금지 및 네이티브 도구 우선 원칙
+1. **코드 I/O, 문서 작성 및 Git 조작에 unityMCP 사용 절대 금지**:
+   - 마크다운 문서(`*.md`) 작성/수정, 소스 코드 I/O(`apply_text_edits`, `manage_script`, `create_script`, `get_sha`), Git 명령(`git status`, `git commit` 등)을 유니티 MCP 도구 또는 C# 리플렉션(`unityMCP/execute_code`)을 통해 실행하는 비효율적 안티패턴을 전면 금지합니다.
+2. **테스트 실행에 unityMCP run_tests 사용 금지**:
+   - 단위/통합 테스트는 에디터 락 및 폴링 토큰 낭비를 유발하는 `unityMCP:run_tests` 대신 무인 CLI 도구(`node .agents/skills/unity-cli-runner/scripts/unity_cli.js test`)를 사용합니다.
+3. **네이티브 도구 사용 의무**:
+   - 파일 생성/수정: 표준 파일 도구(`write_to_file`, `replace_file_content`) 사용
    - Git 및 CLI 명령: 표준 터미널 도구(`run_command`) 사용
-3. **unityMCP의 제한적 용도**:
-   - `unityMCP`는 오직 유니티 에디터 플레이모드 제어, 콘솔 에러 로그 조회, 씬 GameObject/Component 인스펙션, 스크린샷 캡처 등 **순수 엔진 런타임 조작에만 국한하여 사용**합니다.
+4. **unityMCP의 제한적 용도**:
+   - `unityMCP`는 오직 유니티 에디터 플레이모드 제어, 콘솔 에러 로그 조회(`read_console`), 씬 GameObject/Component 인스펙션(`find_gameobjects`), 스크린샷 캡처 등 **순수 엔진 런타임 조작 및 시각 검수에만 국한하여 사용**합니다.
+
 
 ---
 

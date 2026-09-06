@@ -11,17 +11,16 @@ description: Developer 에이전트가 docs/tech_spec/ 분석, 작업 브랜치 
 
 ## 1. 개발 5단계 표준 워크플로우
 
-### [1단계: 사전 명세 분석 및 작업 브랜치 일치 검증 (Safety Gate)]
-1. `docs/tech_spec/[시스템명]_tech_spec.md` 및 `docs/PROJECT_SPEC.md`의 아키텍처 기준을 참조합니다.
-2. **브랜치 일치 여부 자가 검증 (Safety Gate)**:
-   - 터미널에서 현재 체크아웃된 브랜치를 확인합니다:
-     ```bash
-     git branch --show-current
-     ```
-   - `docs/work/status.md`에 명시된 `**작업 브랜치**`와 현재 브랜치가 100% 일치하는지 대조합니다.
-   - **불일치 시 (Safety Trigger)**:
-     - **어떠한 소스 코드나 에셋도 절대 수정하지 않습니다.**
-     - 즉시 작업을 중단하고 PM에게 "현재 브랜치([현재])가 status.md의 작업 브랜치([지정])와 불일치합니다. 브랜치 전환을 요청합니다."라고 보고하고 대기합니다.
+### [1단계: 사전 명세 분석 및 First-Tool-Call 브랜치 일치 검증 (Safety Gate)]
+1. `docs/tech_spec/[시스템명]_tech_spec.md` 및 `docs/PROJECT_SPEC.md`의 아키텍처 기준을 확인합니다.
+2. **First-Tool-Call 브랜치 검증 의무화 (절대 규칙)**:
+   - Developer가 턴을 시작할 때 **가장 첫 번째 도구 호출(Tool Call #1)은 무조건 `run_command("git branch --show-current")`**여야 합니다.
+   - *파일 수정 도구(`write_to_file`, `replace_file_content`, `unityMCP` 등)를 먼저 호출하는 행위는 엄격히 금지됩니다.*
+3. **Safety Gate 판정**:
+   - `git branch --show-current`의 터미널 출력이 `docs/work/status.md`의 `**작업 브랜치**`와 100% 일치하는지 대조합니다.
+   - **불일치 또는 `develop` 브랜치인 경우 (Safety Trigger)**:
+     - **어떠한 소스 코드나 에셋도 절대 수정하지 않습니다. (파일 쓰기 도구 호출 0건)**
+     - 즉시 작업을 중단하고 PM에게 "현재 물리적 브랜치([출력값])가 status.md의 작업 브랜치([지정값])와 불일치합니다. 브랜치 전환을 요청합니다."라고 보고하고 대기합니다.
 
 ### [2단계: 4단계 아키텍처 우선(Architecture-First) 구현]
 브랜치 일치가 검증되면 아래 의존성 순서에 따라 C# 스크립트와 프리팹을 조립합니다:
@@ -30,7 +29,7 @@ description: Developer 에이전트가 docs/tech_spec/ 분석, 작업 브랜치 
 3. **[3단계] 액터 엔티티 & Zero-Override 완제품 프리팹**: 플레이어, 적 AI 기체, 2D 히트박스 바인딩
 4. **[4단계] HUD/UI 및 연출**: 스코어보드, 파티클 이펙트/사운드 바인딩
 
-### [3단계: 백그라운드 사전 컴파일 검증 및 직접 커밋 (Clean PR 원칙)]
+### [3단계: 백그라운드 컴파일 검증 및 물리적 커밋 검증 (Proof-of-Commit)]
 1. 코드 작성 후 아래 명령을 실행하여 컴파일 에러가 0건인지 자체 검증합니다:
    ```bash
    node .agents/skills/unity-cli-runner/scripts/unity_cli.js compile
@@ -40,6 +39,11 @@ description: Developer 에이전트가 docs/tech_spec/ 분석, 작업 브랜치 
    git add Assets/
    git commit -m "[feat] : [기능명] C# 구현 및 프리팹 조립 완료"
    ```
+3. **물리적 커밋 생성 증거 확인 (Proof-of-Commit)**:
+   ```bash
+   git log -1 --oneline
+   ```
+   - *커밋 해시와 메시지가 정상 출력되는지 확인한 후에만 인계 단계로 진행합니다.*
 
 ### [4단계: 구현 기술문서 작성 및 아키텍처 관계도 동기화 (로컬 디스크 작성)]
 1. **개별 구현 기술문서 작성**: 네이티브 파일 도구로 `docs/implementations/[태스크명]_impl.md` 파일을 생성하고 기술 명세를 작성합니다.
@@ -50,7 +54,7 @@ description: Developer 에이전트가 docs/tech_spec/ 분석, 작업 브랜치 
 1. `docs/work/status.md`의 `**진행 상태**`를 `[Developer] [기능명] 구현 및 커밋 완료 ➔ git_manager에게 PR 발행 인계`로 갱신합니다.
 2. 아래 소통 로거를 실행하고 턴을 종료합니다:
    ```bash
-   node .agents/skills/agent-communication-logger/scripts/log_comm.js --from "Developer" --to "GitManager" --type "PR 요청" --msg "[기능명] C# 구현 및 직접 커밋 완료, Clean PR 발행 요청"
+   node .agents/skills/agent-communication-logger/scripts/log_comm.js --from "Developer" --to "GitManager" --type "PR 요청" --msg "[기능명] C# 구현 및 직접 커밋(Proof-of-Commit 확인 완료), Clean PR 발행 요청"
    ```
 
 ---
