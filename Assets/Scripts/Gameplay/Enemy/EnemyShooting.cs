@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using Galaga.Gameplay.Combat;
+using Galaga.Gameplay.Difficulty;
 
 namespace Galaga.Gameplay.Enemy
 {
@@ -195,7 +196,13 @@ private void HandleProgressChanged(float progress)
                 }
             }
 
-            EnemyBullet bullet = _bulletPool.SpawnBullet(spawnPos, aimDirection, _bulletSpeed);
+            float speed = _bulletSpeed;
+            if (DifficultyRankManager.Instance != null)
+            {
+                speed = DifficultyRankManager.Instance.CurrentParameters.BulletSpeed;
+            }
+
+            EnemyBullet bullet = _bulletPool.SpawnBullet(spawnPos, aimDirection, speed);
             _shotsFiredThisDive++;
             _lastShotTime = Time.time;
 
