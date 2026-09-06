@@ -32,6 +32,9 @@
 | `StageManager` (`PF_StageManager`) | `EnemyDiveController` | 직접 호출 / 섬멸 감지 | 스테이지 클리어 또는 게임 오버 시 `StopAutoDive()` 호출 |
 | `EntranceSequenceManager` | `StageManager` (`PF_StageManager`) | 이벤트 구독 (`OnEnemySpawned`) | 기체 스폰 시 `RegisterEnemy()` 호출하여 생존 카운트 추적 |
 | `EnemyBase` (`PF_Enemy_*`) | `StageManager` (`PF_StageManager`) | 이벤트 구독 (`OnDestroyed`) | 적 격파 시 `HandleEnemyDestroyed()` 호출하여 잔여 적 차감 및 섬멸 검사 |
+| `DifficultyRankManager` (`PF_DifficultyRankManager`) | `EnemyDiveController` / `EnemyShooting` | 직접 참조 / 실시간 동기화 | 산출된 랭크(1~32) 파라미터(비행속도, 탄속, 동시 다이브수, 쿨타임) 실시간 주입 |
+| `StageManager` (`PF_StageManager`) | `DifficultyRankManager` | 이벤트 구독 (`OnStageChanged`) | 스테이지 번호 변경 시 기본 스테이지 랭크(Stage * 2) 재산출 |
+| `PlayerHealth` (`PF_Player`) | `DifficultyRankManager` | 이벤트 구독 (`OnLivesChanged`) | 플레이어 잔기 차감 피격/사망 시 데스 페널티(-3 랭크) 적용 |
 
 ---
 
@@ -71,6 +74,8 @@
 | `StageManager` | `OnEnemyCountChanged(int)` | `HUD / UIManager` | 적 잔여 기수 변경 실시간 반영 |
 | `StageManager` | `OnChallengingStageTriggered(bool)` | `UI / SoundManager` | 챌린징 스테이지 팡파르 및 특수 BGM/배경 전환 |
 | `StageManager` | `OnGameOver` | `ResultsManager / SoundManager` | 게임 오버 시 결과 집계 화면 및 루프 정지 |
+| `DifficultyRankManager` | `OnRankChanged(int)` | `HUD / DifficultyUI` | 난이도 랭크 변경 시 알림/디버그 UI 동기화 |
+| `DifficultyRankManager` | `OnParametersChanged(DifficultyRankParameters)` | `EnemyDiveController / EnemyShooting` | 가변 난이도 수치 변경 시 게임플레이 파라미터 갱신 |
 
 ---
 
