@@ -83,7 +83,7 @@ namespace Galaga.Tests
             Assert.AreEqual(2, _playerShooting.ActiveBulletCount);
 
             // 풀에 생성된 탄환들을 찾아서 화면 상단 밖으로 이동 후 Move 시뮬레이션
-            PlayerBullet[] bullets = Object.FindObjectsByType<PlayerBullet>(FindObjectsSortMode.None);
+            PlayerBullet[] bullets = Object.FindObjectsByType<PlayerBullet>(FindObjectsInactive.Include);
             foreach (var bullet in bullets)
             {
                 if (bullet.gameObject.activeSelf)
@@ -104,7 +104,7 @@ namespace Galaga.Tests
             Assert.AreEqual(2, _playerShooting.ActiveBulletCount);
 
             // 1발을 수동으로 풀에 반환
-            PlayerBullet[] bullets = Object.FindObjectsByType<PlayerBullet>(FindObjectsSortMode.None);
+            PlayerBullet[] bullets = Object.FindObjectsByType<PlayerBullet>(FindObjectsInactive.Include);
             PlayerBullet activeBullet = null;
             foreach (var bullet in bullets)
             {
