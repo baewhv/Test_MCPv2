@@ -20,3 +20,5 @@
 | 10:40:40 | QA | QA | 검수 착수 | [Task 4-2 스테이지 진행 및 섬멸 판정 매니저] NUnit 테스트 작성 및 4대 필수 검수 착수 |
 | 10:44:15 | QA | PM | 최종 완료 보고 | Task 4-2 PR #14 QA 4대 검수 100% 통과(91/91 Pass), 머지 완료 및 worklist.md 갱신 완료 |
 | 11:27:38 | GitManager | Developer | 브랜치 준비 완료 | refactor/idamageable-pipeline 브랜치 분리 완료, Developer 작업 착수 요청 |
+| 11:32:00 | Developer | GitManager | PR 요청 | [IDamageable 피격 파이프라인 디커플링] C# 구현 완료, PR 발행 요청 |
+| 11:32:45 | GitManager | QA | QA 검수 요청 | IDamageable 피격 파이프라인 디커플링 PR #15 생성 완료, QA 검수 및 테스트 작성 요청 |
