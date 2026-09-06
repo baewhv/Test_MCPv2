@@ -31,16 +31,27 @@ description: PM 에이전트가 사전 환경 검증, 사용자 작업 의도 �
      ```
    - `GitManager`에게 지정된 브랜치명으로 분리 및 전환(`git-branch-setup`)을 지시합니다.
 
-2. **1개 작업 완료 사이클 (5단계 Clean PR & Post-Merge 문서 정리)**:
-   `[PM] (필요시 git-doc-sync 문서 동기화) ➔ [GitManager] 브랜치 분리 ➔ [Developer] C# 구현 (Assets/만 커밋) ➔ [GitManager] Clean PR 발행 ➔ [QA] 4대 검수 & NUnit 커밋 & PR Approve ➔ [PM] 사용자 머지 대기 알림 ➔ [사용자] GitHub PR 직접 머지 ➔ [PM] Post-Merge 문서 동기화`
+2. **1개 개발 사이클의 정의 (1사이클 = 브랜치 분리부터 Post-Merge 문서 동기화까지)**:
+   - **사이클 진행 중**: `[Step 1: GitManager] 브랜치 분리/발행 ➔ [Step 2: Developer] C# 구현 (Assets/ 커밋/푸시) ➔ [Step 3: GitManager] Clean PR 발행 ➔ [Step 4: QA] 4대 검수 & NUnit 커밋/푸시 & PR Approve`
+   - **중간 대기 상태**: `[Step 5] [PM] 사용자 머지 대기 알림 ➔ [사용자] GitHub PR 직접 수동 머지`
+   - **1사이클 최종 완결**: `[Step 6] [PM] Post-Merge develop 최신화 & docs/ 문서 일괄 커밋/푸시 (git-doc-sync 완결 ➔ 1사이클 공식 종료)`
 
-3. **서브에이전트 도구 권한 보장 원칙 (Write Tools Standard)**:
-   - PM이 `developer`, `qa`, `git_manager` 등 서브에이전트를 동적으로 정의/호출할 때는 파일 생성/수정 및 CLI 실행을 위해 **`enable_write_tools: true`를 필수로 보장**합니다. 쓰기 권한 누락으로 인해 에이전트가 `unityMCP`를 통한 코드 편집 우회 루프에 빠지는 것을 원천 차단합니다.
+3. **서브 에이전트 실물 도구 호출 파이프라인 (invoke_subagent Pipeline)**:
+   - PM은 직접 코드를 작성하거나 브랜치를 분리/검수하지 않고, **반드시 `invoke_subagent` 도구를 실제로 호출**하여 독립된 서브 에이전트에게 실행을 위임합니다:
+     - **[Step 1: GitManager 호출 (브랜치 분리/발행)]**:
+       `invoke_subagent(TypeName="git_manager", Role="Git 형상 관리자", Prompt="feat/[기능명] 브랜치를 develop 기준으로 분리하고 원격에 즉시 publish한 뒤 로컬 전환을 검증해주세요.")`
+     - **[Step 2: Developer 호출 (기능 구현 및 커밋)]**:
+       `invoke_subagent(TypeName="developer", Role="Unity 클라이언트 개발자", Prompt="docs/tech_spec/[기능명]_tech_spec.md 명세를 바탕으로 feat/[기능명] 브랜치에서 C# 구현, CLI 컴파일 검증, Assets/ 커밋 및 원격 푸시, docs/implementations/ 기술문서를 작성해주세요.")`
+     - **[Step 3: GitManager 호출 (Clean PR 발행)]**:
+       `invoke_subagent(TypeName="git_manager", Role="Git 형상 관리자", Prompt="feat/[기능명] 브랜치에 대해 develop 대상 Clean PR을 발행하고 QA에게 인계해주세요.")`
+     - **[Step 4: QA 호출 (검수 및 Approve)]**:
+       `invoke_subagent(TypeName="qa", Role="소프트웨어 품질 보증(QA)", Prompt="PR #[번호]에 대해 변경 파일 타겟 NUnit 테스트 작성, 4대 검수 및 무인 회귀 테스트를 수행하고 PR Approve 리뷰를 제출해주세요.")`
+   - *주의: 단순히 터미널 소통 로깅(`log_comm.js`)만 찍고 PM이 개발 스킬을 직접 읽어 코딩/수정을 혼자 수행하는 1인 다역(Roleplay) 행위를 엄격히 금지합니다.*
+
 
 
 ### [명령어별 라우팅 규격]
 1. **단일 작업 착수 ("작업 하나 진행해줘", "다음 작업 진행해줘")**:
-   - **사전 동기화**: 이전 태스크의 PR이 머지된 상태라면 `git-doc-sync`를 먼저 가동하여 `docs/` 문서를 `develop`에 일괄 커밋/푸시합니다.
    - `docs/work/status.md`의 진행 중인 작업을 확인 후, `docs/work/worklist.md`의 미완료(`- [ ]`) 태스크를 **1순위: `## 사용자 최우선 지시사항`, 2순위: `## 작업 체크리스트`** 순서로 탐색하여 최상위 1개 작업을 선택한 뒤 브랜치를 지정하고 GitManager/Developer에게 위임합니다.
 2. **다중/배치 작업 착수 ("N개의 작업 진행해줘", 예: "3개의 작업 진행해줘")**:
    - `worklist.md`의 미완료 항목들을 우선순위에 따라 최상위부터 N개의 작업을 순차적으로 1개 루프씩 완수하며 연계 실행합니다.
@@ -75,7 +86,7 @@ PM은 서브에이전트의 텍스트 완료 보고("브랜치 분리 완료", "
    - *검증*: `Assets/` 폴더 내에 Unstaged/Untracked 소스 코드가 남아있지 않고 깨끗하게 커밋되었는지 확인.
 3. **QA 승인 후 최종 상태 검증 (QA ➔ 사용자 보고 전)**:
    - PM이 직접 실행: `run_command("git log -1 --oneline")` 및 `run_command("git status")`
-   - *검증*: QA 테스트 커밋이 정상적으로 찍히고 워킹 트리에 충돌/결함이 없는지 확인 후 사용자에게 최종 완료 알림 보고.
+   - *검증*: QA 테스트 커밋이 정상적으로 찍히고 워킹 트리에 충돌/결함이 없는지 확인 후 사용자에게 중간 대기 알림 보고.
 
 ---
 
@@ -90,19 +101,32 @@ PM은 서브에이전트의 텍스트 완료 보고("브랜치 분리 완료", "
 
 ---
 
-## 5. 1루프 최종 완료 보고 양식 (사용자 PR 머지 대기 알림)
+## 5. 단계별 알림 및 완료 보고 양식
 
+### [1) 중간 알림: QA 승인 완료 (사용자 PR 머지 대기)]
 QA 에이전트의 검수 승인(Approve)이 완료되면 사용자에게 아래 양식으로 간결히 알리고 머지를 대기합니다:
 
 ```markdown
 ### [기능명] QA 검수 승인 완료 (PR 머지 대기)
 
-- **완료 태스크**: [태스크명] (PR #[번호])
+- **검수 태스크**: [태스크명] (PR #[번호])
 - **QA 검수 상태**: 4대 검수 및 NUnit 100% Pass (APPROVE 완료)
-- **갱신된 로컬 문서 목록** (PR 머지 후 develop 일괄 반영):
-  - `docs/work/worklist.md` (태스크 완료 체크)
-  - `docs/work/status.md` (진행 상태 갱신)
+- **대기 상태**: 사용자 GitHub PR 수동 머지 대기 중
+- **안내**: GitHub에서 PR #[번호]를 검토 후 머지(Merge)해 주십시오. 머지 완료 후 알려주시면 develop 최신화 및 문서 동기화(git-doc-sync)를 거쳐 1사이클을 최종 완결합니다.
+```
+
+### [2) 1사이클 최종 완결 보고: Post-Merge 문서 동기화 완료]
+사용자가 PR을 머지하고 난 뒤 `git-doc-sync`를 실행하여 develop 및 `docs/` 동기화가 끝나면 아래 양식으로 1사이클 종료를 공식 보고합니다:
+
+```markdown
+### [기능명] 1개 개발 사이클 최종 완결 (Post-Merge 동기화 완료)
+
+- **완결 태스크**: [태스크명] (PR #[번호] 머지 완료)
+- **develop 브랜치 동기화**: 최신 pull 및 docs/ 일괄 커밋/푸시 완료
+- **동기화된 문서 목록**:
+  - `docs/work/worklist.md` (완료 체크 반영)
+  - `docs/work/status.md` (대기 상태 전환)
   - `docs/implementations/[태스크명]_impl.md` (구현 기술문서)
   - `docs/logs/agent_comm_YYYY-MM-DD.md` (협업 로그)
-- **안내**: GitHub에서 PR #[번호]를 검토 후 머지(Merge)해 주십시오. 머지 완료 후 다음 작업을 지시하시면 develop 문서 동기화 및 차기 작업에 착수합니다.
+- **차기 상태**: 다음 작업 착수 대기 완료
 ```
