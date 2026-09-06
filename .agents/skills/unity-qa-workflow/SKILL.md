@@ -78,3 +78,6 @@ description: QA 에이전트가 PR 수신 시 작업 브랜치 변경 파일만 
    ```bash
    node .agents/skills/agent-communication-logger/scripts/log_comm.js --from "QA" --to "GitManager" --type "문서 동기화 요청" --msg "[기능명] PR 승인(Approve) 완료, worklist/status 동기화 요청"
    ```
+
+
+

@@ -60,20 +60,17 @@ graph TD
     QA -->|"태스크 완료 체크 [- [x] (PR #nn)]"| Worklist
     QA -->|"검수 승인 완료 보고"| PM
 
-    PM -->|"Step 5. [중간 대기] PR 머지 대기 알림"| User
-    User -->|"GitHub UI에서 PR 직접 수동 머지"| PR
-    User -->|"머지 완료 전달 / 다음 작업 지시"| PM
-
-    PM -->|"Step 6. [1사이클 최종 완결] develop pull & docs/ 일괄 커밋/푸시"| GitManager
+    PM -->|"Step 5. [1사이클 최종 완결] develop pull & docs/ 일괄 커밋/푸시"| GitManager
     GitManager -->|"git-doc-sync 문서 동기화 완결"| GitManager
-    PM -->|"1사이클 공식 완결 보고"| User
+    PM -->|"1사이클 공식 완결 및 PR 머지 대기 보고"| User
+    User -->|"Step 6. GitHub UI에서 PR 최종 수동 머지"| PR
 ```
 
 ---
 
 ## 2. 1개 개발 사이클 표준 시퀀스 (Single Task Loop Sequence)
 
-1개의 개발 작업(Task)은 `브랜치 분리 ➔ C# 구현 & 커밋/푸시 ➔ Clean PR 발행 ➔ QA 검수 & 승인 ➔ 사용자 PR 머지 ➔ Post-Merge 문서 동기화`를 거쳐 **문서 동기화가 완료된 시점에 1사이클이 공식 완결**됩니다:
+1개의 개발 작업(Task)은 `브랜치 분리 ➔ C# 구현 & 커밋/푸시 ➔ Clean PR 발행 ➔ QA 검수 & 승인 ➔ PM 문서 동기화 & 1사이클 완결 보고 ➔ 사용자 PR 최종 머지`를 거쳐 **QA 승인 후 PM의 문서 동기화가 완료된 시점에 1사이클이 공식 완결**됩니다:
 
 ```mermaid
 sequenceDiagram
@@ -107,20 +104,16 @@ sequenceDiagram
     QA->>Git: GitHub PR APPROVE 리뷰 등록
     QA->>PM: QA 검수 승인 완료 보고
 
-    Note over PM,User: [중간 대기 상태]
-    PM->>User: "QA 검수 승인 완료, 사용자 PR 머지 대기 알림"
-    User->>Git: GitHub UI에서 PR 직접 수동 머지(Merge)
-
     Note over PM,GM: [1사이클 최종 완결 단계]
-    User->>PM: "PR 머지 완료 / 다음 작업 진행해줘"
-    PM->>GM: invoke_subagent("git_manager", "Post-Merge 문서 동기화")
+    PM->>GM: invoke_subagent("git_manager", "문서 동기화(git-doc-sync)")
     GM->>Git: git checkout develop && git pull && git add docs/ && git commit && git push
-    PM->>User: "1개 개발 사이클 최종 완결 (문서 동기화 완료)" 종합 보고
+    PM->>User: "1개 개발 사이클 최종 완결 및 PR 머지 대기 알림" 종합 보고
+    User->>Git: GitHub UI에서 PR 최종 수동 머지(Merge)
 ```
 
 ---
 
-## 3. 에이전트 4대 공통 행동 제어 규칙 (`.agents/rules/agent_rule.md`)
+## 3. 에이전트 4대 공통 행동 제어 규칙 (`GEMINI.md` / `.agents/rules/agent_rule.md`)
 
 모든 에이전트는 아래의 4대 거버넌스 규칙을 무조건 준수합니다:
 
@@ -139,12 +132,12 @@ sequenceDiagram
 
 | 에이전트 | 전담 직무 라인 (`Core Scope`) | 주요 전담 스킬 (HOW) | 핵심 산출물 및 검증 게이트 |
 | :--- | :--- | :--- | :--- |
-| **`PM`** | • 작업 라우팅 & 브랜치 지정<br>• `invoke_subagent` 실물 위임<br>• 물리적 상태 교차 검증<br>• Post-Merge 문서 동기화 총괄 | `unity-pm-orchestration`<br>`github-issue-sync`<br>`unity-devlog-workflow` | • 종합 완료 보고서<br>• Notion 학습일지<br>• Double-Check Gate |
+| **`PM`** | • 작업 라우팅 & 브랜치 지정<br>• `invoke_subagent` 실물 위임<br>• 물리적 상태 교차 검증<br>• QA 승인 직후 문서 동기화 총괄 및 1사이클 완결 보고 | `unity-pm-orchestration`<br>`github-issue-sync`<br>`unity-devlog-workflow` | • 종합 완료 보고서<br>• Notion 학습일지<br>• Double-Check Gate |
 | **`Designer`** | • 원본 기획서(`docs/specs/`) 5대 검수<br>• 기획 상세 명세서 작성<br>• 4단계 실무 태스크 등록<br>• 기획 보완 Issue 제안 | `unity-design-workflow` | • `docs/tech_spec/`<br>• `docs/work/worklist.md`<br>• Strict Read-Only Gate |
 | **`Artist`** | • 2D/3D 그래픽, UI, 오디오 제작<br>• `Assets/_Imports/` 표준 배치<br>• Particle System 완제품 프리팹 조립<br>• Animator Controller 상태 머신 구성 | `unity-art-asset-workflow`<br>`unity-vfx-anim-workflow` | • `Assets/_Imports/`<br>• `Assets/Prefabs/VFX/PF_VFX_*`<br>• Zero-Scene-VFX Gate |
 | **`Developer`** | • C# 로직 신규 구현 & 수정/리팩토링<br>• Zero-Override 완제품 프리팹 조립<br>• CLI 무인 컴파일 0 에러/0 경고 검증<br>• `Assets/` 선별 커밋 & 원격 즉시 푸시<br>• 구현 기술문서 작성 | `unity-dev-workflow`<br>`unity-modify-workflow`<br>`unity-coding-rule`<br>`unity-work-rule` | • `Assets/Scripts/`<br>• `Assets/Prefabs/PF_*`<br>• `docs/implementations/`<br>• First-Tool-Call Safety Gate |
 | **`QA`** | • PR 타겟 NUnit 테스트 작성 & 푸시<br>• 4대 런타임/정적 검수<br>• 무인 CLI 회귀 테스트 (100% Pass)<br>• GitHub PR `APPROVE` 리뷰 등록<br>• 프로젝트 종합 검수 & 삼각 감사 | `unity-qa-workflow`<br>`unity-qa-full-inspect`<br>`unity-spec-audit` | • `Assets/Tests/`<br>• GitHub PR Approve 리뷰<br>• Fast-Fail & Zero-Fix Gate |
-| **`GitManager`** | • develop 기준 로컬 브랜치 분리 & 원격 즉시 발행<br>• develop 대상 Clean PR 발행<br>• Post-Merge `docs/` 문서 일괄 동기화<br>• GitHub Issue 4단계 상태 전이 관리 | `git-branch-setup`<br>`git-pr-workflow`<br>`git-doc-sync`<br>`github-issue-sync` | • 작업 브랜치 원격 발행<br>• Clean PR 발행<br>• Clean PR Inspection Gate |
+| **`GitManager`** | • develop 기준 로컬 브랜치 분리 & 원격 즉시 발행<br>• develop 대상 Clean PR 발행<br>• QA 승인 후 `docs/` 문서 일괄 동기화<br>• GitHub Issue 4단계 상태 전이 관리 | `git-branch-setup`<br>`git-pr-workflow`<br>`git-doc-sync`<br>`github-issue-sync` | • 작업 브랜치 원격 발행<br>• Clean PR 발행<br>• Clean PR Inspection Gate |
 
 ---
 
@@ -172,7 +165,7 @@ Assets/
 
 | 명령어 구분 | 사용자 입력 예시 | 에이전트 동작 및 처리 결과 |
 | :--- | :--- | :--- |
-| **단일 작업** | *"작업 하나 진행해줘"*, *"다음 작업 진행해줘"* | 브랜치 지정/발행 ➔ 개발 & 푸시 ➔ Clean PR ➔ QA 검수 & 승인 ➔ 사용자 머지 ➔ 문서 동기화 완결 |
+| **단일 작업** | *"작업 하나 진행해줘"*, *"다음 작업 진행해줘"* | 브랜치 지정/발행 ➔ 개발 & 푸시 ➔ Clean PR ➔ QA 검수 & 승인 ➔ 문서 동기화 & 1사이클 완결 ➔ 사용자 머지 대기 |
 | **배치 작업** | *"3개의 작업 진행해줘"*, *"N개의 작업 진행해줘"* | 최상위부터 N개 태스크를 순차적으로 1개 사이클씩 연계 완수 |
 | **일괄 지정** | *"[키워드] 작업들 진행해줘"* | 일치하는 태스크 목록 확인 질문 ➔ 사용자 승인 후 순차 완결 |
 | **이슈 동기화** | *"이슈 체크해줘"*, *"이슈 확인해줘"* | [반려] Close, [수락]➔[착수] worklist 등록, [완료] Close, [제안] 대기건수 보고 |

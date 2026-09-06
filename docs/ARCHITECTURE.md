@@ -35,6 +35,8 @@
 | `DifficultyRankManager` (`PF_DifficultyRankManager`) | `EnemyDiveController` / `EnemyShooting` | 직접 참조 / 실시간 동기화 | 산출된 랭크(1~32) 파라미터(비행속도, 탄속, 동시 다이브수, 쿨타임) 실시간 주입 |
 | `StageManager` (`PF_StageManager`) | `DifficultyRankManager` | 이벤트 구독 (`OnStageChanged`) | 스테이지 번호 변경 시 기본 스테이지 랭크(Stage * 2) 재산출 |
 | `PlayerHealth` (`PF_Player`) | `DifficultyRankManager` | 이벤트 구독 (`OnLivesChanged`) | 플레이어 잔기 차감 피격/사망 시 데스 페널티(-3 랭크) 적용 |
+| `EnemyBoss` (`PF_Enemy_Boss`) | `BossTractorBeam` (`PF_BossTractorBeam`) | 자식 직렬화 참조 / 제어 | 다이브 고도 도달 시 트랙터 빔 전개(`StartTractorBeam()`) 및 회수 |
+| `BossTractorBeam` (`PF_BossTractorBeam`) | `PlayerController` / `PlayerHealth` | OnTriggerEnter2D | 플레이어 기체 포획 영역 진입 감지 및 `OnTargetCaptured` 이벤트 발행 |
 
 ---
 
