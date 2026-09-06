@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using Galaga.Core;
-using Galaga.Gameplay.Player;
 
 namespace Galaga.Gameplay.Combat
 {
@@ -239,22 +238,16 @@ namespace Galaga.Gameplay.Combat
                 return;
             }
 
-            // 플레이어 피격 처리
+            // 피격 대상(IDamageable) 또는 플레이어 충돌 판정 시 데미지 부여 및 풀 반환
+            if (collision.TryGetComponent<IDamageable>(out var damageable))
+            {
+                damageable.TakeDamage(_damage);
+                ReturnToPool();
+                return;
+            }
+
             if (collision.CompareTag("Player") || collision.name.Contains("Player"))
             {
-                IDamageable damageable = collision.GetComponent<IDamageable>();
-                if (damageable != null)
-                {
-                    damageable.TakeDamage(_damage);
-                }
-                else
-                {
-                    PlayerHealth health = collision.GetComponent<PlayerHealth>();
-                    if (health != null)
-                    {
-                        health.TakeDamage(_damage);
-                    }
-                }
                 ReturnToPool();
             }
         }
@@ -272,21 +265,16 @@ namespace Galaga.Gameplay.Combat
                 return;
             }
 
+            // 피격 대상(IDamageable) 또는 플레이어 충돌 판정 시 데미지 부여 및 풀 반환
+            if (other.TryGetComponent<IDamageable>(out var damageable))
+            {
+                damageable.TakeDamage(_damage);
+                ReturnToPool();
+                return;
+            }
+
             if (other.CompareTag("Player") || other.name.Contains("Player"))
             {
-                IDamageable damageable = other.GetComponent<IDamageable>();
-                if (damageable != null)
-                {
-                    damageable.TakeDamage(_damage);
-                }
-                else
-                {
-                    PlayerHealth health = other.GetComponent<PlayerHealth>();
-                    if (health != null)
-                    {
-                        health.TakeDamage(_damage);
-                    }
-                }
                 ReturnToPool();
             }
         }

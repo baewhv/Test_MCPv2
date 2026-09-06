@@ -260,7 +260,7 @@ namespace Galaga.Gameplay.Enemy
 
         private void TriggerFlash(Color restoreColor)
         {
-            if (!gameObject.activeInHierarchy)
+            if (!gameObject.activeSelf)
             {
                 ApplyColor(restoreColor);
                 return;
@@ -316,13 +316,17 @@ namespace Galaga.Gameplay.Enemy
 
             if (collision.CompareTag("PlayerBullet") || collision.name.Contains("Bullet"))
             {
-                PlayerBullet bullet = collision.GetComponent<PlayerBullet>();
-                int dmg = bullet != null ? bullet.Damage : 1;
-                TakeDamage(dmg);
-
-                if (bullet != null)
+                if (collision.TryGetComponent<PlayerBullet>(out var bullet))
                 {
-                    bullet.ReturnToPool();
+                    if (bullet.gameObject.activeSelf)
+                    {
+                        TakeDamage(bullet.Damage);
+                        bullet.ReturnToPool();
+                    }
+                }
+                else
+                {
+                    TakeDamage(1);
                 }
             }
         }
@@ -336,13 +340,17 @@ namespace Galaga.Gameplay.Enemy
 
             if (other.CompareTag("PlayerBullet") || other.name.Contains("Bullet"))
             {
-                PlayerBullet bullet = other.GetComponent<PlayerBullet>();
-                int dmg = bullet != null ? bullet.Damage : 1;
-                TakeDamage(dmg);
-
-                if (bullet != null)
+                if (other.TryGetComponent<PlayerBullet>(out var bullet))
                 {
-                    bullet.ReturnToPool();
+                    if (bullet.gameObject.activeSelf)
+                    {
+                        TakeDamage(bullet.Damage);
+                        bullet.ReturnToPool();
+                    }
+                }
+                else
+                {
+                    TakeDamage(1);
                 }
             }
         }

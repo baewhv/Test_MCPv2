@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using Galaga.Core;
-using Galaga.Gameplay.Enemy;
 
 namespace Galaga.Gameplay.Combat
 {
@@ -220,22 +219,16 @@ namespace Galaga.Gameplay.Combat
                 return;
             }
 
-            // 적 충돌 판정 시 데미지 부여 및 풀 반환
+            // 피격 대상(IDamageable) 또는 적 충돌 판정 시 데미지 부여 및 풀 반환
+            if (collision.TryGetComponent<IDamageable>(out var damageable))
+            {
+                damageable.TakeDamage(_damage);
+                ReturnToPool();
+                return;
+            }
+
             if (collision.CompareTag("Enemy") || collision.name.Contains("Enemy"))
             {
-                IDamageable damageable = collision.GetComponent<IDamageable>();
-                if (damageable != null)
-                {
-                    damageable.TakeDamage(_damage);
-                }
-                else
-                {
-                    EnemyBase enemy = collision.GetComponent<EnemyBase>();
-                    if (enemy != null)
-                    {
-                        enemy.TakeDamage(_damage);
-                    }
-                }
                 ReturnToPool();
             }
         }
@@ -253,21 +246,16 @@ namespace Galaga.Gameplay.Combat
                 return;
             }
 
+            // 피격 대상(IDamageable) 또는 적 충돌 판정 시 데미지 부여 및 풀 반환
+            if (other.TryGetComponent<IDamageable>(out var damageable))
+            {
+                damageable.TakeDamage(_damage);
+                ReturnToPool();
+                return;
+            }
+
             if (other.CompareTag("Enemy") || other.name.Contains("Enemy"))
             {
-                IDamageable damageable = other.GetComponent<IDamageable>();
-                if (damageable != null)
-                {
-                    damageable.TakeDamage(_damage);
-                }
-                else
-                {
-                    EnemyBase enemy = other.GetComponent<EnemyBase>();
-                    if (enemy != null)
-                    {
-                        enemy.TakeDamage(_damage);
-                    }
-                }
                 ReturnToPool();
             }
         }
