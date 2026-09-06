@@ -11,16 +11,24 @@
 
 ---
 
-## 1. 사용자 작업 지시 및 직접 인계(Direct Handoff) 원칙
-- 메인(Default) 에이전트는 사용자로부터 작업 실행 지시(\"기획서 분석해줘\", \"작업 하나 진행해줘\", \"N개 작업 진행해줘\", \"리팩토링해줘\", \"현재 상태\" 등)를 수신하면, 직접 코딩이나 검수를 수행하지 않고 **`invoke_subagent` 도구를 호출하여 `PM` 에이전트에게 지시를 위임**한다.
-- **서브에이전트 간 직접 인계 및 비동기 병행 처리**:
-  - 서브에이전트는 단계마다 PM을 거치는 동기식 병목을 없애기 위해, 작업 완료 시 다음 전담 에이전트(`Developer ➔ GitManager ➔ QA`)에게 일감을 **직접 위임(Direct Handoff)**하고 즉시 턴을 종료한다.
-  - `PM`에게는 전체 협업 흐름을 추적할 수 있도록 행적 로그(`agent-communication-logger`)를 남기며, PM은 1루프 최종 완결 시 사용자 종합 보고를 총괄한다.
-
+## 1. 표준 5단계 개발 라이프사이클 및 Clean PR 원칙
+- **Clean PR 원칙 (코드 순수성 유지)**: 작업 브랜치(`feat/...`)에는 오직 실제 게임 소스 코드, 프리팹, 테스트 코드(`Assets/`)만 커밋하여 PR을 생성하며, `docs/` 폴더의 문서는 작업 브랜치에 커밋하지 않고 로컬에 보존합니다.
+- **5단계 표준 협업 사이클**:
+  1. `[Developer]` `feat/...` 브랜치에서 기능 구현 및 기술문서 작성 ➔ `git add Assets/` 작업물만 선별 커밋 ➔ `GitManager` 인계
+  2. `[GitManager]` `feat/...` 브랜치 원격 푸시 ➔ 순수 작업물 Clean PR 발행 ➔ `QA` 인계
+  3. `[QA]` `feat/...` 브랜치 4대 검수 & NUnit 테스트 커밋(`git add Assets/Tests/`) ➔ GitHub PR Approve 리뷰 등록 ➔ `PM` 보고
+  4. `[PM & 사용자]` PM이 "QA 승인 완료, PR 머지 대기" 간결 알림 보고 ➔ **사용자가 GitHub UI에서 PR을 직접 수동 머지**
+  5. `[PM 문서 최종 정리 (Post-Merge)]` 사용자가 PR 머지 후 다음 지시 시, PM이 `develop` 브랜치를 pull 최신화하고 `docs/` 문서를 일괄 커밋/푸시(`git add docs/`, `git commit -m "[docs]..."`)하여 1루프 최종 완결
 
 ---
 
-## 2. 읽기 전용 문서 위치 (Read-Only Specifications)
+## 2. 브랜치 보호 및 머지 통제 절대 규칙 (Branch Protection)
+- **develop 직접 푸시 엄격 금지**: 개발 및 QA 진행 중에는 어떠한 에이전트도 `develop` 브랜치에 직접 소스코드를 푸시할 수 없습니다.
+- **PR 상태 임의 조작 금지**: QA 및 GitManager는 PR을 직접 머지(`merge_pull_request`)하거나 임의로 닫는(`update_issue` / close) 우회 행위를 일체 수행할 수 없으며, 모든 PR의 머지는 오직 **사용자**가 수행합니다.
+
+---
+
+## 3. 읽기 전용 문서 위치 (Read-Only Specifications)
 - 아래 경로의 문서는 사용자가 직접 작성한 원본 문서이므로, 모든 에이전트는 **수정 및 덮어쓰기가 절대 불가능하며 오직 읽기(Read-Only)**만 수행한다:
 
 | 경로 (Path) | 설명 (Description) | 에이전트 접근 권한 |
@@ -29,8 +37,8 @@
 
 ---
 
-## 3. 작업 문서 위치 (Working Documents)
-- 아래 경로의 문서는 서브 에이전트가 개발/분석 과정에서 실시간으로 갱신하는 작업 파일입니다:
+## 4. 작업 문서 위치 (Working Documents)
+- 아래 경로의 문서는 서브 에이전트가 개발/분석 과정에서 실시간으로 갱신하는 작업 파일입니다 (사용자 PR 머지 후 PM이 일괄 커밋):
 
 | 경로 (Path) | 설명 (Description) | 에이전트 접근 권한 |
 | :--- | :--- | :--- |
@@ -44,7 +52,7 @@
 
 ---
 
-## 4. 기타 문서 위치 (Miscellaneous)
+## 5. 기타 문서 위치 (Miscellaneous)
 
 | 경로 (Path) | 설명 (Description) | 에이전트 접근 권한 |
 | :--- | :--- | :--- |

@@ -30,26 +30,27 @@ description: Developer 에이전트가 docs/tech_spec/ 분석, 작업 브랜치 
 3. **[3단계] 액터 엔티티 & Zero-Override 완제품 프리팹**: 플레이어, 적 AI 기체, 2D 히트박스 바인딩
 4. **[4단계] HUD/UI 및 연출**: 스코어보드, 파티클 이펙트/사운드 바인딩
 
-### [3단계: 백그라운드 사전 컴파일 검증 및 직접 커밋]
+### [3단계: 백그라운드 사전 컴파일 검증 및 직접 커밋 (Clean PR 원칙)]
 1. 코드 작성 후 아래 명령을 실행하여 컴파일 에러가 0건인지 자체 검증합니다:
    ```bash
    node .agents/skills/unity-cli-runner/scripts/unity_cli.js compile
    ```
-2. 컴파일 검증 완료 후 작업 브랜치에서 본인의 작업물을 직접 커밋합니다:
+2. 표준 터미널 Git 명령어로 작업 브랜치에서 **순수 작업물(`Assets/`)만** 직접 커밋합니다 (`docs/` 문서는 커밋하지 않고 로컬에 보존):
    ```bash
-   git add Assets/Scripts/ Assets/Prefabs/
+   git add Assets/
    git commit -m "[feat] : [기능명] C# 구현 및 프리팹 조립 완료"
    ```
 
-### [4단계: 구현 기술문서 작성 및 아키텍처 관계도 동기화]
-1. **개별 구현 기술문서 작성**: `docs/implementations/[태스크명]_impl.md` 파일을 생성하고 기술 명세를 작성합니다.
+### [4단계: 구현 기술문서 작성 및 아키텍처 관계도 동기화 (로컬 디스크 작성)]
+1. **개별 구현 기술문서 작성**: 네이티브 파일 도구로 `docs/implementations/[태스크명]_impl.md` 파일을 생성하고 기술 명세를 작성합니다.
 2. **아키텍처 관계도 동기화**: `docs/ARCHITECTURE.md`에 관계도를 갱신합니다.
+   - *참고: 작성된 `docs/` 문서는 PR 머지 후 PM이 `develop` 브랜치에 일괄 커밋/푸시합니다.*
 
 ### [5단계: 상태 현황판 갱신 및 GitManager PR 인계]
 1. `docs/work/status.md`의 `**진행 상태**`를 `[Developer] [기능명] 구현 및 커밋 완료 ➔ git_manager에게 PR 발행 인계`로 갱신합니다.
 2. 아래 소통 로거를 실행하고 턴을 종료합니다:
    ```bash
-   node .agents/skills/agent-communication-logger/scripts/log_comm.js --from "Developer" --to "GitManager" --type "PR 요청" --msg "[기능명] C# 구현 및 직접 커밋 완료, PR 발행 요청"
+   node .agents/skills/agent-communication-logger/scripts/log_comm.js --from "Developer" --to "GitManager" --type "PR 요청" --msg "[기능명] C# 구현 및 직접 커밋 완료, Clean PR 발행 요청"
    ```
 
 ---

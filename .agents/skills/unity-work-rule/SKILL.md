@@ -1,11 +1,11 @@
-﻿---
+---
 name: unity-work-rule
-description: 씬 오버라이드 0건(Zero-Override), 독립 완제품 프리팹(PF_*) 우선 조립, 인스펙터 직렬화 바인딩, Missing Reference 방지 및 에디터 스크립팅 제한을 준수하는 유니티 엔진 작업 스킬
+description: 씬 오버라이드 0건(Zero-Override), 독립 완제품 프리팹(PF_*) 우선 조립, 인스펙터 직렬화 바인딩, Missing Reference 방지, unityMCP/execute_code 오남용 금지 및 에디터 스크립팅 제한을 준수하는 유니티 엔진 작업 스킬
 ---
 
 # 유니티 작업 및 Zero-Override 프리팹 조립 표준 스킬 (Unity Work Skill)
 
-이 스킬은 프로젝트의 유니티 에디터 조작, 씬 충돌 방지, Zero-Override 프리팹 조립, 직렬화 바인딩 및 에디터 스크립팅 제한을 규정하는 작업 표준 지침입니다.
+이 스킬은 프로젝트의 유니티 에디터 조작, 씬 충돌 방지, Zero-Override 프리팹 조립, 직렬화 바인딩, 도구 사용 경계 및 에디터 스크립팅 제한을 규정하는 작업 표준 지침입니다.
 
 ---
 
@@ -17,11 +17,11 @@ description: 씬 오버라이드 0건(Zero-Override), 독립 완제품 프리팹
    - 컴포넌트 조립과 직렬화 필드 바인딩은 프리팹 에셋 내부에서 완결합니다.
 3. **Zero-Override Clean Instance 유지**:
    - 씬에 배치된 프리팹 인스턴스는 **어떠한 로컬 수정도 가하지 않은 순수 프리팹 완제품(Zero-Override Clean Instance, Overrides 0건)** 상태를 유지해야 합니다.
-   - 수정이 필요한 경우 씬의 인스펙터에서 개별 수정하지 않고 반드시 **프리팹 에셋 원본(Prefab Asset Root)**을 수정하여 모든 인스턴스에 동기화합니다.
+   - 씬 파일 내에 `m_AddedComponents`, `m_RemovedComponents`가 생성되지 않도록 반드시 **프리팹 에셋 원본(Prefab Asset Root)**에 직접 추가하거나 인스펙터 상단 Overrides -> `Apply All`을 실행합니다.
 4. **씬 통합 및 검수는 순차 수행**:
    - 씬에 프리팹을 배치하고 연동하는 최종 작업은 PR 머지 후 `QA` 단계에서 순차적으로 안전하게 수행합니다.
-5. **QA Zero-Override 무결성 검증**:
-   - QA는 검수 시 씬 내의 모든 인스턴스가 프리팹 에셋과 연결되어 있는지 확인하며, 인스펙터 오버라이드(Overrides)가 남아있는 경우 즉시 반려(Reject)하고 프리팹 원본 수정을 요청합니다.
+5. **QA Zero-Override 무결성 검증 및 반려 기준**:
+   - QA는 검수 시 씬 내의 모든 인스턴스가 프리팹 에셋과 1:1로 일치하는지 확인하며, `m_AddedComponents` 등 오버라이드가 남아있는 경우 **즉시 PR을 반려(QA 반려 5-C)**하고 프리팹 원본 동기화를 요청합니다.
 
 ---
 
@@ -40,7 +40,18 @@ description: 씬 오버라이드 0건(Zero-Override), 독립 완제품 프리팹
 
 ---
 
-## 4. 에디터 스크립팅 제한 규칙 (Editor Scripting Boundary)
+## 4. unityMCP/execute_code 오남용 전면 금지 및 네이티브 도구 우선 원칙
+1. **문서 작성 및 Git 조작에 execute_code 사용 절대 금지**:
+   - 마크다운 문서(`*.md`) 작성/수정, 소스 코드 I/O, Git 명령(`git status`, `git commit`, `git push` 등)을 유니티 에디터 C# 리플렉션(`unityMCP/execute_code`)을 통해 실행하는 비효율적 안티패턴을 전면 금지합니다.
+2. **네이티브 도구 사용 의무**:
+   - 파일 생성/수정: 표준 파일 도구(`write_to_file`, `replace_file_content`, OS 파일시스템) 사용
+   - Git 및 CLI 명령: 표준 터미널 도구(`run_command`) 사용
+3. **unityMCP의 제한적 용도**:
+   - `unityMCP`는 오직 유니티 에디터 플레이모드 제어, 콘솔 에러 로그 조회, 씬 GameObject/Component 인스펙션, 스크린샷 캡처 등 **순수 엔진 런타임 조작에만 국한하여 사용**합니다.
+
+---
+
+## 5. 에디터 스크립팅 제한 규칙 (Editor Scripting Boundary)
 1. **허용되는 에디터 코드 (Inspector Customization)**:
    - 인스펙터 가독성 향상, 필드 유효성 검사, 드롭다운 편의성 제공을 위한 **순수 인스펙터 커스터마이징(`CustomEditor`, `PropertyDrawer`)** 목적의 에디터 코드만 허용합니다.
 2. **지양/금지되는 에디터 코드 (No Build / Workflow Automation Scripts)**:

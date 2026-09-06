@@ -31,11 +31,12 @@ description: PM 에이전트가 사전 환경 검증, 사용자 작업 의도 �
      ```
    - `GitManager`에게 지정된 브랜치명으로 분리 및 전환(`git-branch-setup`)을 지시합니다.
 
-2. **1개 작업 완료 사이클**:
-   `[PM] 브랜치 지정 ➔ [GitManager] 브랜치 분리 ➔ [Developer] 브랜치 일치 검증 & C# 구현 및 직접 커밋 ➔ [GitManager] PR 발행 ➔ [QA] 4대 검수 & NUnit 직접 커밋 & PR 승인 ➔ [PM] 종합 보고`
+2. **1개 작업 완료 사이클 (5단계 Clean PR & Post-Merge 문서 정리)**:
+   `[PM] (필요시 git-doc-sync 문서 동기화) ➔ [GitManager] 브랜치 분리 ➔ [Developer] C# 구현 (Assets/만 커밋) ➔ [GitManager] Clean PR 발행 ➔ [QA] 4대 검수 & NUnit 커밋 & PR Approve ➔ [PM] 사용자 머지 대기 알림 ➔ [사용자] GitHub PR 직접 머지 ➔ [PM] Post-Merge 문서 동기화`
 
 ### [명령어별 라우팅 규격]
 1. **단일 작업 착수 ("작업 하나 진행해줘", "다음 작업 진행해줘")**:
+   - **사전 동기화**: 이전 태스크의 PR이 머지된 상태라면 `git-doc-sync`를 먼저 가동하여 `docs/` 문서를 `develop`에 일괄 커밋/푸시합니다.
    - `docs/work/status.md`의 진행 중인 작업을 확인 후, `docs/work/worklist.md`의 미완료(`- [ ]`) 태스크를 **1순위: `## 사용자 최우선 지시사항`, 2순위: `## 작업 체크리스트`** 순서로 탐색하여 최상위 1개 작업을 선택한 뒤 브랜치를 지정하고 GitManager/Developer에게 위임합니다.
 2. **다중/배치 작업 착수 ("N개의 작업 진행해줘", 예: "3개의 작업 진행해줘")**:
    - `worklist.md`의 미완료 항목들을 우선순위에 따라 최상위부터 N개의 작업을 순차적으로 1개 루프씩 완수하며 연계 실행합니다.
@@ -66,18 +67,19 @@ description: PM 에이전트가 사전 환경 검증, 사용자 작업 의도 �
 
 ---
 
-## 4. 1루프 최종 완료 종합 보고 양식
+## 4. 1루프 최종 완료 보고 양식 (사용자 PR 머지 대기 알림)
 
-서브에이전트들의 Direct Handoff가 완결되면 사용자에게 아래 양식으로 최종 결과를 종합 보고합니다:
+QA 에이전트의 검수 승인(Approve)이 완료되면 사용자에게 아래 양식으로 간결히 알리고 머지를 대기합니다:
 
 ```markdown
-### [기능명] 1루프 개발 및 검수 완료 보고
+### [기능명] QA 검수 승인 완료 (PR 머지 대기)
 
-| 구분 | 내용 |
-| :--- | :--- |
-| **완료 태스크** | [태스크명] |
-| **작업 브랜치** | `feat/[기능명]` |
-| **Pull Request** | [PR #nn](PR 링크) (승인 완료) |
-| **QA 4대 검수** | NUnit 테스트 통과, Console 0 Error, Zero-Override 확인, Missing Ref 0건 |
-| **산출물 문서** | `docs/implementations/[태스크명]_impl.md` |
+- **완료 태스크**: [태스크명] (PR #[번호])
+- **QA 검수 상태**: 4대 검수 및 NUnit 100% Pass (APPROVE 완료)
+- **갱신된 로컬 문서 목록** (PR 머지 후 develop 일괄 반영):
+  - `docs/work/worklist.md` (태스크 완료 체크)
+  - `docs/work/status.md` (진행 상태 갱신)
+  - `docs/implementations/[태스크명]_impl.md` (구현 기술문서)
+  - `docs/logs/agent_comm_YYYY-MM-DD.md` (협업 로그)
+- **안내**: GitHub에서 PR #[번호]를 검토 후 머지(Merge)해 주십시오. 머지 완료 후 다음 작업을 지시하시면 develop 문서 동기화 및 차기 작업에 착수합니다.
 ```

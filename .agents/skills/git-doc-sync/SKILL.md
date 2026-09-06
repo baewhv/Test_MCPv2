@@ -1,39 +1,36 @@
 ---
 name: git-doc-sync
-description: 공통 문서(.agents/, docs/, GEMINI.md) 변경 시 작업 중인 코드를 안전하게 Stash하고 develop 브랜치에 직접 커밋/푸시한 뒤 작업 브랜치로 복귀하는 문서 동기화 스킬입니다.
+description: 사용자가 PR을 머지한 후, 최신 develop 브랜치를 pull하여 누적된 작업 문서(docs/)를 일괄 커밋/푸시하여 1루프를 최종 완결하는 Post-Merge 문서 동기화 스킬입니다.
 ---
 
-# 공통 문서 develop 격리 동기화 워크플로우
+# Post-Merge 작업 문서 최종 동기화 워크플로우
 
-이 스킬은 Designer의 기획 명세서, QA의 검수 완료 문서 등 공통 문서가 변경되었을 때, 작업 브랜치의 미완료 코드를 보호하면서 `develop` 브랜치에 깨끗하게 문서를 반영하는 절차를 정의합니다.
+이 스킬은 사용자가 GitHub에서 PR을 검토하고 머지(Merge)한 후, PM 또는 GitManager가 `develop` 브랜치를 최신 상태로 동기화하고 누적된 작업 문서(`docs/`, `status.md`, `worklist.md`, `implementations/` 등)를 `develop`에 일괄 커밋/푸시하는 표준 절차를 정의합니다.
 
 ---
 
-## 1. 문서 격리 동기화 4단계 절차
+## 1. Post-Merge 문서 동기화 4단계 절차
 
-### [1단계: 작업 브랜치 미완료 작업 임시 저장 (Stash)]
-현재 작업 브랜치에서 진행 중이던 코드나 미커밋 에셋을 안전하게 임시 저장합니다:
-```bash
-git stash --include-untracked
-```
-
-### [2단계: develop 브랜치 전환 및 최신화]
+### [1단계: develop 브랜치 전환 및 최신화 (Pull)]
+사용자가 머지한 최신 커밋을 가져옵니다:
 ```bash
 git checkout develop
 git pull origin develop
 ```
 
-### [3단계: 공통 문서 커밋 및 원격 푸시]
-수정된 공통 문서만 스테이징하고 커밋/푸시합니다:
+### [2단계: 작업 문서 일괄 스테이징]
+로컬에 누적 작성되었던 상태판, 체크리스트, 구현 기술문서, 소통 로그를 스테이징합니다:
 ```bash
-git add docs/ .agents/ GEMINI.md
-git commit -m "[docs] : [문서명/기능명] 명세 및 작업 문서 갱신"
+git add docs/
+```
+
+### [3단계: 문서 최종 커밋 및 원격 푸시]
+```bash
+git commit -m "[docs] : [기능명] 작업 완료 문서 및 상태판 최종 갱신"
 git push origin develop
 ```
 
-### [4단계: 원래 작업 브랜치 복귀 및 작업 복원 (Stash Pop)]
-```bash
-git checkout [이전_작업브랜치명]
-git stash pop
-```
-*작업 복원 후 워킹 트리가 이전 작업 상태로 온전히 복구됩니다.*
+### [4단계: 동기화 완료 확인 및 다음 태스크 준비]
+- `git status`로 깨끗한 Working Tree 상태를 확인합니다.
+- 동기화 완료 후 PM은 다음 작업의 신규 브랜치 분리 파이프라인으로 안전하게 진입합니다.
+
