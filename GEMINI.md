@@ -7,7 +7,7 @@
 
 ## 0. 프로젝트 환경 설정 상태 (Setup Status)
 - **상태**: `[SETUP_COMPLETED]`
-<!-- 새 프로젝트 템플릿 복제 시 \"미완료\"로 시작하며, docs/PROJECT_SPEC.md 설정 완료 후 \"[SETUP_COMPLETED]\"로 갱신됩니다. -->
+<!-- 새 프로젝트 템플릿 복제 시 "미완료"로 시작하며, docs/PROJECT_SPEC.md 설정 완료 후 "[SETUP_COMPLETED]"로 갱신됩니다. -->
 
 ---
 
@@ -29,6 +29,7 @@
 ---
 
 ## 3. 읽기 전용 문서 위치 (Read-Only Specifications)
+
 - 아래 경로의 문서는 사용자가 직접 작성한 원본 문서이므로, 모든 에이전트는 **수정 및 덮어쓰기가 절대 불가능하며 오직 읽기(Read-Only)**만 수행한다:
 
 | 경로 (Path) | 설명 (Description) | 에이전트 접근 권한 |
@@ -43,12 +44,14 @@
 | 경로 (Path) | 설명 (Description) | 에이전트 접근 권한 |
 | :--- | :--- | :--- |
 | `docs/PROJECT_SPEC.md` | 프로젝트 환경 사양 기입 문서 | 초기 설정을 위해 읽기/쓰기 가능 |
+| `docs/FOLDER_STRUCTURE.md` | 유니티 표준 폴더 구조 및 에셋/프리팹 네이밍 색인 | 읽기 / 쓰기 가능 |
 | `docs/ARCHITECTURE.md` | 프로젝트 아키텍처 지도 및 관계도 | 읽기 / 쓰기 가능 |
 | `docs/logs/` | 에이전트 간 실시간 소통 기록 폴더 | 읽기 / 쓰기 가능 |
 | `docs/work/worklist.md` | 서브 에이전트 작업 태스크 체크리스트 | 읽기 / 쓰기 가능 |
 | `docs/work/status.md` | 서브 에이전트 현재 실시간 작업 상태판 | 읽기 / 쓰기 가능 |
 | `docs/tech_spec/` | 서브 에이전트(Designer)가 작성한 기획 기술 명세서 폴더 | 읽기 / 쓰기 가능 |
 | `docs/implementations/` | 서브 에이전트(Developer)가 작성한 개별 구현 기술문서 폴더 | 읽기 / 쓰기 가능 |
+
 
 ---
 

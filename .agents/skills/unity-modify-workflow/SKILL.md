@@ -28,11 +28,17 @@ description: Developer 에이전트가 docs/tech_spec/ 변경사항을 분석하
    ```bash
    node .agents/skills/unity-cli-runner/scripts/unity_cli.js compile
    ```
-3. 표준 터미널 Git 명령어로 작업 브랜치에서 직접 커밋합니다:
+3. 표준 터미널 Git 명령어로 작업 브랜치에서 **순수 작업물(`Assets/`)만** 직접 커밋합니다 (`docs/` 문서는 로컬 보존):
    ```bash
    git add Assets/
-   git commit -m "[refactor] : [기능명] 코드 수정 및 리팩토링 완료"
+   # 버그 수정 시: git commit -m "[fix] : [버그명] 수정 및 컴파일 검증 완료"
+   # 구조 개선 시: git commit -m "[refactor] : [개선명] 구조 개선 및 최적화 완료"
    ```
+4. **물리적 커밋 생성 증거 확인 (Proof-of-Commit)**:
+   ```bash
+   git log -1 --oneline
+   ```
+
 
 ### [4단계: implementations 기술문서 및 ARCHITECTURE 최신화 (네이티브 도구 사용)]
 1. 네이티브 파일 도구를 사용하여 `docs/implementations/[태스크명]_impl.md` 및 `docs/ARCHITECTURE.md`의 변경사항을 갱신합니다.
