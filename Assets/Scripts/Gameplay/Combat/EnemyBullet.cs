@@ -117,7 +117,7 @@ namespace Galaga.Gameplay.Combat
             }
         }
 
-        private void SetupComponents()
+public void SetupComponents()
         {
             if (_rigidbody2D == null)
             {
@@ -163,13 +163,10 @@ namespace Galaga.Gameplay.Combat
         /// <param name="deltaTime">경과 시간 (초)</param>
         public void Move(float deltaTime)
         {
+            transform.position += (Vector3)(_direction * (_speed * deltaTime));
             if (_rigidbody2D != null)
             {
-                _rigidbody2D.MovePosition(_rigidbody2D.position + _direction * (_speed * deltaTime));
-            }
-            else
-            {
-                transform.position += (Vector3)(_direction * (_speed * deltaTime));
+                _rigidbody2D.position = transform.position;
             }
             CheckBoundary();
         }

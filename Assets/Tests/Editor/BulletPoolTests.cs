@@ -14,7 +14,7 @@ namespace Galaga.Tests
         private PlayerShooting _playerShooting;
         private GameObject _bulletPrefab;
 
-        [SetUp]
+[SetUp]
         public void SetUp()
         {
             _cameraObject = new GameObject("TestCamera");
@@ -22,7 +22,7 @@ namespace Galaga.Tests
             _playAreaManager = _cameraObject.AddComponent<PlayAreaManager>();
             _playAreaManager.RecalculateBounds();
 
-            _bulletPrefab = new合理的GameObject("TestBulletPrefab");
+            _bulletPrefab = new GameObject("TestBulletPrefab");
             _bulletPrefab.AddComponent<PlayerBullet>();
             _bulletPrefab.SetActive(false);
 
