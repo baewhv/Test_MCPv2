@@ -27,6 +27,11 @@
 | `FormationGridManager` | `EnemyBase` | 위치 동기화 / 상태 제어 | 슬롯 안착 적(`EnemyState.Formation`)의 위치를 Sine wave 호흡 좌표로 실시간 동기화 |
 | `EnemyBase` (`PF_Enemy_*`) | `ScoreManager` (`PF_ScoreManager`) | `Die()` 직접 호출 | 격파 시 `AddEnemyScore(Type, isDiving, escortCount)` 호출하여 차등 점수 가산 |
 | `ScoreManager` (`PF_ScoreManager`) | `PlayerHealth` (`PF_Player`) | `CheckExtend()` / `TriggerExtend()` | 2만/7만점 도달 시 `PlayerHealth.AddLife(1)` 호출 및 `OnExtendLife` 이벤트 발행 |
+| `StageManager` (`PF_StageManager`) | `EntranceSequenceManager` | 직접 호출 / `StartStage()` | 스테이지 시작 시 `StartEntranceSequence()` 트리거 |
+| `StageManager` (`PF_StageManager`) | `FormationGridManager` | 직접 호출 / `StartStage()` | 새 스테이지 진입 시 `InitializeGrid()`로 슬롯 리셋 |
+| `StageManager` (`PF_StageManager`) | `EnemyDiveController` | 직접 호출 / 섬멸 감지 | 스테이지 클리어 또는 게임 오버 시 `StopAutoDive()` 호출 |
+| `EntranceSequenceManager` | `StageManager` (`PF_StageManager`) | 이벤트 구독 (`OnEnemySpawned`) | 기체 스폰 시 `RegisterEnemy()` 호출하여 생존 카운트 추적 |
+| `EnemyBase` (`PF_Enemy_*`) | `StageManager` (`PF_StageManager`) | 이벤트 구독 (`OnDestroyed`) | 적 격파 시 `HandleEnemyDestroyed()` 호출하여 잔여 적 차감 및 섬멸 검사 |
 
 ---
 
@@ -50,15 +55,22 @@
 | `InputSystem (Player/Attack)` | `performed` | `PlayerShooting` | `TryFire()` 호출하여 탄환 발사 |
 | `PlayerHealth` | `OnLivesChanged(int)` | `HUD / UIManager` | 잔기 변경 시 하단 UI 아이콘 갱신 |
 | `PlayerHealth` | `OnPlayerRespawned` | `PlayerController` / `Audio` | 리스폰 효과음 재생 및 기체 조작권 복구 |
-| `PlayerHealth` | `OnPlayerDied` | `GameManager / ExplosionManager` | 폭발 이펙트 재생 및 게임 오버 시퀀스 트리거 |
+| `PlayerHealth` | `OnPlayerDied` | `StageManager / GameManager / ExplosionManager` | 폭발 이펙트 재생 및 게임 오버 시퀀스 트리거 |
 | `ScoreManager` | `OnScoreChanged(int)` | `HUD / UIManager` | 점수 변경 시 상단 1UP 스코어 텍스트 실시간 갱신 |
 | `ScoreManager` | `OnHighScoreChanged(int)` | `HUD / UIManager` | 하이스코어 갱신 시 HIGH SCORE 텍스트 실시간 반영 |
 | `ScoreManager` | `OnExtendLife(int)` | `PlayerHealth / AudioManager` | 익스텐드 도달 시 보너스 잔기 지급 및 효과음 재생 |
 | `BezierPathFollower` | `OnProgressChanged(float)` | `EnemyShooting` | $t=0.3\sim 0.6$ 구간 조준 사격 발사 |
 | `BezierPathFollower` | `OnPathCompleted` | `EnemyBase` / `EnemyDiveController` | 진입 안착 또는 하단 루프 복귀 핸들러 실행 |
 | `EnemyBase` | `OnDamaged(EnemyBase, int)` | `ScoreManager / SoundManager` | 피격 효과음 및 플래시 연출 |
-| `EnemyBase` | `OnDestroyed(EnemyBase)` | `ScoreManager / FormationGridManager / ExplosionManager` | 점수 가산, 편대 슬롯 자동 해제, 폭발 이펙트 스폰 |
-| `EntranceSequenceManager` | `OnSequenceCompleted` | `EnemyDiveController` | 40기 진입 완료 시 자동 다이브 루프 활성화 |
+| `EnemyBase` | `OnDestroyed(EnemyBase)` | `ScoreManager / FormationGridManager / ExplosionManager / StageManager` | 점수 가산, 편대 슬롯 자동 해제, 폭발 이펙트 스폰, 적 생존 카운트 차감 |
+| `EntranceSequenceManager` | `OnEnemySpawned(EnemyBase)` | `StageManager` | 신규 기체 등록 및 생존 카운트 가산 |
+| `EntranceSequenceManager` | `OnSequenceCompleted` | `EnemyDiveController / StageManager` | 40기 진입 완료 시 자동 다이브 루프 활성화 및 진입 완료 플래그 동기화 |
+| `StageManager` | `OnStageChanged(int)` | `HUD / StageBadgeRenderer` | 스테이지 번호 변경 시 하단 뱃지 UI 갱신 |
+| `StageManager` | `OnStageStarted(int)` | `Audio / UI` | 스테이지 시작 연출 트리거 |
+| `StageManager` | `OnStageCleared(int)` | `Audio / StageBadgeRenderer / ParallaxStarfield` | 40기 전멸 클리어 팡파르, 뱃지 추가 및 워프 가속 연출 |
+| `StageManager` | `OnEnemyCountChanged(int)` | `HUD / UIManager` | 적 잔여 기수 변경 실시간 반영 |
+| `StageManager` | `OnChallengingStageTriggered(bool)` | `UI / SoundManager` | 챌린징 스테이지 팡파르 및 특수 BGM/배경 전환 |
+| `StageManager` | `OnGameOver` | `ResultsManager / SoundManager` | 게임 오버 시 결과 집계 화면 및 루프 정지 |
 
 ---
 
@@ -87,6 +99,7 @@ graph TD
     PlayerHealth["PlayerHealth"]
     PlayerBullet["PlayerBullet (PF_PlayerBullet)"]
     ScoreMgr["ScoreManager (PF_ScoreManager)"]
+    StageMgr["StageManager (PF_StageManager)"]
 
     GridMgr["FormationGridManager (40 Slots, Sine Hover)"]
     SeqMgr["EntranceSequenceManager (5 Waves)"]
@@ -110,6 +123,11 @@ graph TD
     PlayerCtrl -->|Clamp Position| PlayAreaMgr
     PlayerShoot -->|Fire| PlayerBullet
 
+    StageMgr -->|StartEntranceSequence| SeqMgr
+    StageMgr -->|InitializeGrid| GridMgr
+    StageMgr -->|StopAutoDive on Clear| DiveCtrl
+    SeqMgr -->|OnEnemySpawned: Register| StageMgr
+    SeqMgr -->|OnSequenceCompleted| StageMgr
     SeqMgr --> GridMgr
     SeqMgr -->|Spawn & Launch| Enemy
     SeqMgr -->|OnSequenceCompleted| DiveCtrl
@@ -117,11 +135,11 @@ graph TD
     Enemy --> EnemyData
     Enemy --> PathFollower
     Enemy --> Shooting
-    Shooting -->|"Fire(t=0.3~0.6)"| EnemyBulletPool
+    Shooting -->|Fire(t=0.3~0.6)| EnemyBulletPool
     PathFollower --> BezierMath
     PathFollower -->|OnPathCompleted| Enemy
     Enemy -->|EnterFormation| GridMgr
-    GridMgr -->|"Update Position (Sine Wave)"| Enemy
+    GridMgr -->|Update Position (Sine Wave)| Enemy
 
     PlayerBullet -->|OnTriggerEnter2D: Damage| Enemy
     PlayerBullet -->|OnTriggerEnter2D: Despawn| Boundary
@@ -129,7 +147,9 @@ graph TD
     EnemyBulletPool -->|OnTriggerEnter2D: Despawn| Boundary
     Enemy -->|OnTriggerEnter2D: Collision| PlayerHealth
     Enemy -->|Die: AddEnemyScore| ScoreMgr
+    Enemy -->|OnDestroyed: HandleEnemyDestroyed| StageMgr
     ScoreMgr -->|TriggerExtend: AddLife| PlayerHealth
     Enemy -->|OnDestroyed| ExplosionMgr
     PlayerHealth -->|OnPlayerDied| ExplosionMgr
+    PlayerHealth -->|OnPlayerDied: GameOver| StageMgr
 ```
