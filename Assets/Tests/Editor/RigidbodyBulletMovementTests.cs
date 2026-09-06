@@ -78,8 +78,8 @@ namespace Galaga.Tests
             _playerBullet.Speed = 27.7f;
             Rigidbody2D rb = _playerBullet.GetComponent<Rigidbody2D>();
 
-            Assert.AreEqual(0f, rb.velocity.x, 0.001f);
-            Assert.AreEqual(27.7f, rb.velocity.y, 0.01f);
+            Assert.AreEqual(0f, rb.linearVelocity.x, 0.001f);
+            Assert.AreEqual(27.7f, rb.linearVelocity.y, 0.01f);
         }
 
         [Test]
@@ -108,8 +108,8 @@ namespace Galaga.Tests
             Rigidbody2D rb = _enemyBullet.GetComponent<Rigidbody2D>();
 
             Vector2 expectedVelocity = dir * speed;
-            Assert.AreEqual(expectedVelocity.x, rb.velocity.x, 0.01f);
-            Assert.AreEqual(expectedVelocity.y, rb.velocity.y, 0.01f);
+            Assert.AreEqual(expectedVelocity.x, rb.linearVelocity.x, 0.01f);
+            Assert.AreEqual(expectedVelocity.y, rb.linearVelocity.y, 0.01f);
         }
 
         [Test]

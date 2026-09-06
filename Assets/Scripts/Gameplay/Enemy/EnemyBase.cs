@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 using Galaga.Gameplay.Combat;
+using Galaga.Gameplay.Score;
 
 namespace Galaga.Gameplay.Enemy
 {
@@ -30,6 +31,7 @@ namespace Galaga.Gameplay.Enemy
         [Header("Runtime State (Inspector View)")]
         [SerializeField] private EnemyState _currentState = EnemyState.Spawning;
         [SerializeField] private int _currentHP = 1;
+        [SerializeField] private int _escortCount = 0;
 
         private Coroutine _flashCoroutine;
         private MaterialPropertyBlock _propBlock;
@@ -48,6 +50,12 @@ namespace Galaga.Gameplay.Enemy
         public bool IsAlive => !IsDead;
         public EnemyType Type => _enemyData != null ? _enemyData.Type : EnemyType.Zako;
         public EnemyType EnemyType => Type;
+
+        public int EscortCount
+        {
+            get => _escortCount;
+            set => _escortCount = value;
+        }
 
         private void Awake()
         {
@@ -92,6 +100,10 @@ namespace Galaga.Gameplay.Enemy
                 StopCoroutine(_flashCoroutine);
                 _flashCoroutine = null;
             }
+
+            OnDestroyed = null;
+            OnDamaged = null;
+            OnStateChanged = null;
         }
 
         /// <summary>
@@ -115,6 +127,7 @@ namespace Galaga.Gameplay.Enemy
             }
 
             _currentState = EnemyState.Spawning;
+            _escortCount = 0;
             if (_collider != null)
             {
                 _collider.enabled = true;
@@ -189,6 +202,7 @@ namespace Galaga.Gameplay.Enemy
         public void EnterFormation()
         {
             SetState(EnemyState.Formation);
+            _escortCount = 0;
             if (_pathFollower != null)
             {
                 _pathFollower.Stop();
@@ -201,6 +215,7 @@ namespace Galaga.Gameplay.Enemy
         /// </summary>
         public void Die()
         {
+            bool isDiving = (_currentState == EnemyState.Diving || _currentState == EnemyState.Returning);
             SetState(EnemyState.Dead);
 
             if (_pathFollower != null)
@@ -211,6 +226,11 @@ namespace Galaga.Gameplay.Enemy
             if (_collider != null)
             {
                 _collider.enabled = false;
+            }
+
+            if (ScoreManager.Instance != null)
+            {
+                ScoreManager.Instance.AddEnemyScore(Type, isDiving, _escortCount);
             }
 
             if (ExplosionManager.Instance != null)

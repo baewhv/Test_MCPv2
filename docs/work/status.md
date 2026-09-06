@@ -1,7 +1,7 @@
 # 개발 및 기획 진행 상태 (Status)
 
 ## [현재 상태]
-- **진행 상태**: [GitManager] [Task 4-1 점수 및 익스텐드 시스템] PR 생성 완료 (PR #13) ➔ qa에게 검수 인계
+- **진행 상태**: [QA] [Task 4-1 점수 및 익스텐드 시스템] QA 4대 검수 통과 및 worklist [x] 완료 ➔ 사용자 최종 Merge 대기
 - **작업 브랜치**: `feat_phase4_score_extend_system`
 
 ---

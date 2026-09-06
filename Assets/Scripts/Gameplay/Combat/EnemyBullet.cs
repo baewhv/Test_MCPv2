@@ -45,7 +45,7 @@ namespace Galaga.Gameplay.Combat
                 SetupComponents();
                 if (_rigidbody2D != null)
                 {
-                    _rigidbody2D.velocity = _direction * _speed;
+                    _rigidbody2D.linearVelocity = _direction * _speed;
                 }
             }
         }
@@ -94,7 +94,7 @@ namespace Galaga.Gameplay.Combat
 
             if (_rigidbody2D != null)
             {
-                _rigidbody2D.velocity = _direction * _speed;
+                _rigidbody2D.linearVelocity = _direction * _speed;
             }
 
             // 진행 방향으로 탄환 2D 회전 정렬
@@ -112,7 +112,7 @@ namespace Galaga.Gameplay.Combat
             SetupComponents();
             if (_rigidbody2D != null)
             {
-                _rigidbody2D.velocity = _direction * _speed;
+                _rigidbody2D.linearVelocity = _direction * _speed;
             }
         }
 
@@ -157,7 +157,7 @@ namespace Galaga.Gameplay.Combat
         {
             if (_rigidbody2D != null)
             {
-                _rigidbody2D.velocity = _direction * _speed;
+                _rigidbody2D.linearVelocity = _direction * _speed;
             }
             CheckBoundary();
         }
@@ -180,7 +180,7 @@ namespace Galaga.Gameplay.Combat
             if (_rigidbody2D != null)
             {
                 _rigidbody2D.position = pos;
-                _rigidbody2D.velocity = _direction * _speed;
+                _rigidbody2D.linearVelocity = _direction * _speed;
             }
 
             CheckBoundary();
@@ -218,7 +218,7 @@ namespace Galaga.Gameplay.Combat
 
             if (_rigidbody2D != null)
             {
-                _rigidbody2D.velocity = Vector2.zero;
+                _rigidbody2D.linearVelocity = Vector2.zero;
             }
 
             gameObject.SetActive(false);

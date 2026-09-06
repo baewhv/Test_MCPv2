@@ -44,7 +44,7 @@ namespace Galaga.Gameplay.Combat
                 SetupComponents();
                 if (_rigidbody2D != null)
                 {
-                    _rigidbody2D.velocity = Vector2.up * _speed;
+                    _rigidbody2D.linearVelocity = Vector2.up * _speed;
                 }
             }
         }
@@ -88,7 +88,7 @@ namespace Galaga.Gameplay.Combat
             SetupComponents();
             if (_rigidbody2D != null)
             {
-                _rigidbody2D.velocity = Vector2.up * _speed;
+                _rigidbody2D.linearVelocity = Vector2.up * _speed;
             }
         }
 
@@ -102,7 +102,7 @@ namespace Galaga.Gameplay.Combat
             SetupComponents();
             if (_rigidbody2D != null)
             {
-                _rigidbody2D.velocity = Vector2.up * _speed;
+                _rigidbody2D.linearVelocity = Vector2.up * _speed;
             }
         }
 
@@ -147,7 +147,7 @@ namespace Galaga.Gameplay.Combat
         {
             if (_rigidbody2D != null)
             {
-                _rigidbody2D.velocity = Vector2.up * _speed;
+                _rigidbody2D.linearVelocity = Vector2.up * _speed;
             }
             CheckBoundary();
         }
@@ -169,7 +169,7 @@ namespace Galaga.Gameplay.Combat
             if (_rigidbody2D != null)
             {
                 _rigidbody2D.position = pos;
-                _rigidbody2D.velocity = Vector2.up * _speed;
+                _rigidbody2D.linearVelocity = Vector2.up * _speed;
             }
 
             CheckBoundary();
@@ -199,7 +199,7 @@ namespace Galaga.Gameplay.Combat
 
             if (_rigidbody2D != null)
             {
-                _rigidbody2D.velocity = Vector2.zero;
+                _rigidbody2D.linearVelocity = Vector2.zero;
             }
 
             gameObject.SetActive(false);

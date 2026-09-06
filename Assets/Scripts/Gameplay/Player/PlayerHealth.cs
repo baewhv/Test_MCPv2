@@ -111,6 +111,10 @@ namespace Galaga.Gameplay.Player
             {
                 _playerRenderer.enabled = true;
             }
+
+            OnLivesChanged = null;
+            OnPlayerRespawned = null;
+            OnPlayerDied = null;
         }
 
         /// <summary>
@@ -150,14 +154,14 @@ namespace Galaga.Gameplay.Player
         /// <summary>
         /// 익스텐드(보너스 점수 도달 등)로 추가 잔기를 지급합니다.
         /// </summary>
-        public void AddLife(int amount = 1)
+        public void AddLife(int count = 1)
         {
             if (_isDead)
             {
                 return;
             }
 
-            _currentLives = Mathf.Min(_currentLives + amount, _maxLives);
+            _currentLives = Mathf.Min(_currentLives + count, _maxLives);
             OnLivesChanged?.Invoke(_currentLives);
         }
 
