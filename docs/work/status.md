@@ -1,8 +1,8 @@
 # 개발 및 기획 진행 상태 (Status)
 
 ## [현재 상태]
-- **진행 상태**: [QA] [Task 4-2 스테이지 진행 및 섬멸 판정 매니저] QA 4대 검수 통과 및 PR #14 머지 완료 ➔ PM에게 1루프 최종 완료 보고
-- **작업 브랜치**: `develop`
+- **진행 상태**: [Developer] [Refactor] IDamageable 인터페이스 도입 및 피격 파이프라인 디커플링 작업 착수 ➔ Developer 구현 진행 중
+- **작업 브랜치**: `refactor/idamageable-pipeline`
 
 ---
 
