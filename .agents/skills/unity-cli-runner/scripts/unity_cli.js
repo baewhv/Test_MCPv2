@@ -1,4 +1,4 @@
-﻿const { execFile, execSync } = require('child_process');
+const { execFile, execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -46,7 +46,7 @@ async function runTests(platform = 'EditMode') {
   console.log(`[Unity CLI] NUnit 단위 테스트 실행 (${platform})`);
 
   try {
-    execSync(`"${unityPath}" -batchmode -projectPath "${projectRoot}" -runTests -testPlatform ${platform} -testResults "${resultsPath}" -quit`, {
+    execSync(`"${unityPath}" -batchmode -projectPath "${projectRoot}" -runTests -testPlatform ${platform} -testResults "${resultsPath}"`, {
       stdio: 'inherit',
       timeout: 300000
     });

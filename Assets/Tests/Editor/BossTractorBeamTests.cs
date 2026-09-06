@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using Galaga.Core;
@@ -14,11 +15,14 @@ namespace Galaga.Tests
         private EnemyBase _enemyBase;
         private EnemyBoss _enemyBoss;
         private BossTractorBeam _tractorBeam;
+        private GameObject _playerObject;
+        private PlayerHealth _playerHealth;
 
         [SetUp]
         public void SetUp()
         {
             _bossObject = new GameObject("TestBoss");
+            _bossObject.tag = "Enemy";
             _enemyBase = _bossObject.AddComponent<EnemyBase>();
             _enemyBoss = _bossObject.AddComponent<EnemyBoss>();
 
@@ -26,8 +30,20 @@ namespace Galaga.Tests
             beamObject.transform.SetParent(_bossObject.transform);
             _tractorBeam = beamObject.AddComponent<BossTractorBeam>();
 
+            MethodInfo bossAwake = typeof(EnemyBoss).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
+            bossAwake?.Invoke(_enemyBoss, null);
+
+            MethodInfo beamAwake = typeof(BossTractorBeam).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
+            beamAwake?.Invoke(_tractorBeam, null);
+
             _enemyBoss.TractorBeam = _tractorBeam;
             _tractorBeam.OwnerBoss = _enemyBase;
+
+            _playerObject = new GameObject("TestPlayer");
+            _playerObject.tag = "Player";
+            _playerObject.AddComponent<BoxCollider2D>().isTrigger = true;
+            _playerHealth = _playerObject.AddComponent<PlayerHealth>();
+            _playerHealth.Initialize(3);
         }
 
         [TearDown]
@@ -37,12 +53,19 @@ namespace Galaga.Tests
             {
                 Object.DestroyImmediate(_bossObject);
             }
+
+            if (_playerObject != null)
+            {
+                Object.DestroyImmediate(_playerObject);
+            }
         }
+
+        #region BossTractorBeam Geometry & Dimensions Tests
 
         [Test]
         public void BossTractorBeam_DefaultDimensions_MatchesTechSpec()
         {
-            // 상단 0.556u (8px), 하단 3.333u (48px), 높이 8.333u (120px)
+            // 상단 0.556u (8px), 하단 3.333u (48px), 높이 8.333u (120px), 지속 시간 4.0초
             Assert.AreEqual(0.556f, _tractorBeam.TopWidth, 0.001f);
             Assert.AreEqual(3.333f, _tractorBeam.BottomWidth, 0.001f);
             Assert.AreEqual(8.333f, _tractorBeam.BeamHeight, 0.001f);
@@ -75,6 +98,33 @@ namespace Galaga.Tests
         }
 
         [Test]
+        public void BossTractorBeam_DimensionSetters_UpdatePropertiesAndColliderPoints()
+        {
+            _tractorBeam.TopWidth = 1.0f;
+            _tractorBeam.BottomWidth = 4.0f;
+            _tractorBeam.BeamHeight = 10.0f;
+            _tractorBeam.BeamOffset = new Vector2(0.5f, -0.5f);
+
+            Vector2[] vertices = _tractorBeam.GetLocalVertices();
+
+            Assert.AreEqual(-0.5f + 0.5f, vertices[0].x, 0.001f);
+            Assert.AreEqual(0f - 0.5f, vertices[0].y, 0.001f);
+
+            Assert.AreEqual(0.5f + 0.5f, vertices[1].x, 0.001f);
+            Assert.AreEqual(0f - 0.5f, vertices[1].y, 0.001f);
+
+            Assert.AreEqual(2.0f + 0.5f, vertices[2].x, 0.001f);
+            Assert.AreEqual(-10.0f - 0.5f, vertices[2].y, 0.001f);
+
+            Assert.AreEqual(-2.0f + 0.5f, vertices[3].x, 0.001f);
+            Assert.AreEqual(-10.0f - 0.5f, vertices[3].y, 0.001f);
+        }
+
+        #endregion
+
+        #region BossTractorBeam Lifecycle & Activation Tests
+
+        [Test]
         public void BossTractorBeam_ActivateAndDeactivate_UpdatesStateAndEvents()
         {
             bool activatedCalled = false;
@@ -95,12 +145,113 @@ namespace Galaga.Tests
         }
 
         [Test]
+        public void BossTractorBeam_OnDisable_DeactivatesBeamAndClearsEvents()
+        {
+            _tractorBeam.ActivateBeam(4.0f);
+            Assert.IsTrue(_tractorBeam.IsBeamActive);
+
+            bool callbackInvoked = false;
+            _tractorBeam.OnBeamActivated += () => callbackInvoked = true;
+
+            // Invoke OnDisable via reflection
+            MethodInfo onDisableMethod = typeof(BossTractorBeam).GetMethod("OnDisable", BindingFlags.NonPublic | BindingFlags.Instance);
+            onDisableMethod.Invoke(_tractorBeam, null);
+
+            Assert.IsFalse(_tractorBeam.IsBeamActive);
+        }
+
+        [Test]
+        public void BossTractorBeam_OwnerDestroyed_DeactivatesBeam()
+        {
+            _tractorBeam.ActivateBeam(4.0f);
+            Assert.IsTrue(_tractorBeam.IsBeamActive);
+
+            _enemyBase.TakeDamage(100); // Kills enemy and fires OnDestroyed
+
+            Assert.IsFalse(_tractorBeam.IsBeamActive);
+        }
+
+        #endregion
+
+        #region BossTractorBeam Trigger & Capture Detection Tests
+
+        [Test]
+        public void BossTractorBeam_OnTriggerEnter2D_InvokesOnTargetCaptured_ForPlayer()
+        {
+            _tractorBeam.ActivateBeam(4.0f);
+
+            Collider2D capturedTarget = null;
+            _tractorBeam.OnTargetCaptured += (col) => capturedTarget = col;
+
+            MethodInfo triggerMethod = typeof(BossTractorBeam).GetMethod("OnTriggerEnter2D", BindingFlags.NonPublic | BindingFlags.Instance);
+            Collider2D playerCol = _playerObject.GetComponent<Collider2D>();
+            triggerMethod.Invoke(_tractorBeam, new object[] { playerCol });
+
+            Assert.IsNotNull(capturedTarget, "Player collider must trigger OnTargetCaptured");
+            Assert.AreEqual(playerCol, capturedTarget);
+        }
+
+        [Test]
+        public void BossTractorBeam_OnTriggerEnter2D_IgnoresCollisions_WhenBeamInactive()
+        {
+            _tractorBeam.DeactivateBeam();
+
+            Collider2D capturedTarget = null;
+            _tractorBeam.OnTargetCaptured += (col) => capturedTarget = col;
+
+            MethodInfo triggerMethod = typeof(BossTractorBeam).GetMethod("OnTriggerEnter2D", BindingFlags.NonPublic | BindingFlags.Instance);
+            Collider2D playerCol = _playerObject.GetComponent<Collider2D>();
+            triggerMethod.Invoke(_tractorBeam, new object[] { playerCol });
+
+            Assert.IsNull(capturedTarget, "Inactive beam must ignore collisions");
+        }
+
+        [Test]
+        public void BossTractorBeam_OnTriggerEnter2D_IgnoresNonPlayerColliders()
+        {
+            _tractorBeam.ActivateBeam(4.0f);
+
+            GameObject nonPlayer = new GameObject("Obstacle");
+            nonPlayer.tag = "Untagged";
+            BoxCollider2D nonPlayerCol = nonPlayer.AddComponent<BoxCollider2D>();
+
+            Collider2D capturedTarget = null;
+            _tractorBeam.OnTargetCaptured += (col) => capturedTarget = col;
+
+            MethodInfo triggerMethod = typeof(BossTractorBeam).GetMethod("OnTriggerEnter2D", BindingFlags.NonPublic | BindingFlags.Instance);
+            triggerMethod.Invoke(_tractorBeam, new object[] { nonPlayerCol });
+
+            Assert.IsNull(capturedTarget, "Non-player collider must not trigger OnTargetCaptured");
+
+            Object.DestroyImmediate(nonPlayer);
+        }
+
+        #endregion
+
+        #region EnemyBoss Component & Slot Tests
+
+        [Test]
         public void EnemyBoss_StartTractorBeam_SetsEnemyStateToTractorBeam()
         {
             _enemyBoss.StartTractorBeam();
 
             Assert.AreEqual(EnemyState.TractorBeam, _enemyBase.CurrentState);
             Assert.IsTrue(_tractorBeam.IsBeamActive);
+        }
+
+        [Test]
+        public void EnemyBoss_StopTractorBeam_DeactivatesBeamAndFiresOnTractorBeamEnded()
+        {
+            _enemyBoss.StartTractorBeam();
+            Assert.IsTrue(_tractorBeam.IsBeamActive);
+
+            bool endEventFired = false;
+            _enemyBoss.OnTractorBeamEnded += (boss) => endEventFired = true;
+
+            _enemyBoss.StopTractorBeam();
+
+            Assert.IsFalse(_tractorBeam.IsBeamActive);
+            Assert.IsTrue(endEventFired);
         }
 
         [Test]
@@ -127,6 +278,28 @@ namespace Galaga.Tests
 
             Object.DestroyImmediate(fighterObj);
         }
+
+        [Test]
+        public void EnemyBoss_AttachCapturedFighter_HandlesNullGracefully()
+        {
+            _enemyBoss.AttachCapturedFighter(null);
+
+            Assert.IsFalse(_enemyBoss.HasCapturedFighter);
+            Assert.IsNull(_enemyBoss.CapturedFighter);
+        }
+
+        [Test]
+        public void EnemyBoss_DetachCapturedFighter_WhenNone_ReturnsNull()
+        {
+            EnemyBase detached = _enemyBoss.DetachCapturedFighter();
+
+            Assert.IsNull(detached);
+            Assert.IsFalse(_enemyBoss.HasCapturedFighter);
+        }
+
+        #endregion
+
+        #region Trajectory Calculation Tests
 
         [Test]
         public void CreateBossTractorHoverTrajectory_GeneratesValidPathToHoverY()
@@ -168,5 +341,8 @@ namespace Galaga.Tests
             Assert.AreEqual(playerPos.x, segments[0].p3.x, 0.001f);
             Assert.AreEqual(screenBottomY, segments[0].p3.y, 0.001f);
         }
+
+        #endregion
     }
 }
+
