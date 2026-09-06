@@ -15,3 +15,7 @@
 | 02:18:30 | Developer | GitManager | PR 요청 | Task 4-1 점수 및 익스텐드 시스템 C# 구현 완료, PR 발행 요청 |
 | 02:19:53 | QA | QA | 검수 착수 | [Task 4-1 점수 및 익스텐드 시스템] QA 4대 검수 절차 착수 |
 | 02:28:53 | QA | GitManager | QA 승인 | Task 4-1 점수 및 익스텐드 시스템 PR #13 QA 4대 검수 통과, worklist [x] 완료 및 머지 대기 |
+| 10:37:13 | Developer | GitManager | PR 요청 | [Task 4-2 스테이지 진행 및 섬멸 판정 매니저] C# 구현 및 완제품 프리팹 조립 완료, PR 발행 요청 |
+| 10:39:10 | GitManager | QA | QA 검수 요청 | Task 4-2 스테이지 진행 및 섬멸 판정 매니저 PR #14 생성 완료, QA 4대 검수 요청 |
+| 10:40:40 | QA | QA | 검수 착수 | [Task 4-2 스테이지 진행 및 섬멸 판정 매니저] NUnit 테스트 작성 및 4대 필수 검수 착수 |
+| 10:44:15 | QA | PM | 최종 완료 보고 | Task 4-2 PR #14 QA 4대 검수 100% 통과(91/91 Pass), 머지 완료 및 worklist.md 갱신 완료 |
