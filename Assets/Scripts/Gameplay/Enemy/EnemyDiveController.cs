@@ -206,15 +206,27 @@ namespace Galaga.Gameplay.Enemy
                 return;
             }
 
-            // 보스 기체가 있고 호위기가 존재할 확률 검사 (호위 편대 다이브)
+            // 보스 기체가 있는 경우 분기 (호위 편대 vs 트랙터 빔 vs 단독 다이브)
             EnemyBase bossCandidate = candidateEnemies.Find(e => e.Type == EnemyType.BossGalaga || e.Type == EnemyType.Boss);
-            if (bossCandidate != null && UnityEngine.Random.value < 0.4f)
+            if (bossCandidate != null)
             {
-                List<EnemyBase> escorts = FindAvailableEscortsForBoss(bossCandidate, 2);
-                if (escorts.Count > 0)
+                EnemyBoss enemyBoss = bossCandidate.GetComponent<EnemyBoss>();
+                bool hasCapturedFighter = enemyBoss != null && enemyBoss.HasCapturedFighter;
+
+                float roll = UnityEngine.Random.value;
+                if (!hasCapturedFighter && roll < 0.35f)
                 {
-                    TriggerBossEscortDive(bossCandidate, escorts);
+                    LaunchBossTractorBeamDive(bossCandidate);
                     return;
+                }
+                else if (roll < 0.70f)
+                {
+                    List<EnemyBase> escorts = FindAvailableEscortsForBoss(bossCandidate, 2);
+                    if (escorts.Count > 0)
+                    {
+                        TriggerBossEscortDive(bossCandidate, escorts);
+                        return;
+                    }
                 }
             }
 
@@ -325,6 +337,135 @@ namespace Galaga.Gameplay.Enemy
                     }
                     OnDiveStarted?.Invoke(escort);
                 }
+            }
+        }
+
+        /// <summary>
+        /// 보스 갤러그가 지정 고도(Y=0.0~2.0)로 호버링 진입 후 트랙터 빔을 전개하는 특수 다이브를 개시합니다.
+        /// </summary>
+        public void LaunchBossTractorBeamDive(EnemyBase boss, float hoverY = 1.0f, float beamDuration = 4.0f)
+        {
+            if (boss == null || boss.CurrentState != EnemyState.Formation)
+            {
+                return;
+            }
+
+            boss.EscortCount = 0;
+            Vector2 startPos = boss.transform.position;
+            Vector2 playerPos = GetPredictedPlayerPosition();
+            Vector2 hoverPos = new Vector2(playerPos.x, hoverY);
+
+            BezierSegment[] hoverSegments = CreateBossTractorHoverTrajectory(startPos, hoverPos);
+
+            boss.SetState(EnemyState.Diving);
+            _activeDivingEnemies.Add(boss);
+
+            BezierPathFollower follower = boss.GetComponent<BezierPathFollower>();
+            if (follower != null)
+            {
+                follower.SetPath(hoverSegments, _diveSpeed, false);
+                Action onHoverCompleted = null;
+                onHoverCompleted = () =>
+                {
+                    follower.OnPathCompleted -= onHoverCompleted;
+                    OnBossReachedTractorHover(boss, hoverPos, beamDuration);
+                };
+                follower.OnPathCompleted += onHoverCompleted;
+                follower.Play();
+            }
+
+            OnDiveStarted?.Invoke(boss);
+        }
+
+        private void OnBossReachedTractorHover(EnemyBase boss, Vector2 hoverPos, float beamDuration)
+        {
+            if (boss == null || boss.CurrentState == EnemyState.Dead)
+            {
+                _activeDivingEnemies.Remove(boss);
+                return;
+            }
+
+            boss.SetState(EnemyState.TractorBeam);
+            boss.transform.rotation = Quaternion.Euler(0f, 0f, 180f);
+
+            EnemyBoss enemyBoss = boss.GetComponent<EnemyBoss>();
+            BossTractorBeam beam = boss.GetComponentInChildren<BossTractorBeam>(true);
+
+            if (enemyBoss != null)
+            {
+                enemyBoss.StartTractorBeam();
+                if (enemyBoss.TractorBeam != null)
+                {
+                    Action onBeamEnd = null;
+                    onBeamEnd = () =>
+                    {
+                        if (enemyBoss.TractorBeam != null)
+                        {
+                            enemyBoss.TractorBeam.OnBeamDeactivated -= onBeamEnd;
+                            enemyBoss.TractorBeam.OnBeamTimeout -= onBeamEnd;
+                        }
+                        ResumeBossPostBeamDive(boss);
+                    };
+                    enemyBoss.TractorBeam.OnBeamDeactivated += onBeamEnd;
+                    enemyBoss.TractorBeam.OnBeamTimeout += onBeamEnd;
+                }
+                else
+                {
+                    StartCoroutine(WaitAndResumePostBeamDiveRoutine(boss, beamDuration));
+                }
+            }
+            else if (beam != null)
+            {
+                Action onBeamEnd = null;
+                onBeamEnd = () =>
+                {
+                    if (beam != null)
+                    {
+                        beam.OnBeamDeactivated -= onBeamEnd;
+                        beam.OnBeamTimeout -= onBeamEnd;
+                    }
+                    ResumeBossPostBeamDive(boss);
+                };
+                beam.OnBeamDeactivated += onBeamEnd;
+                beam.OnBeamTimeout += onBeamEnd;
+                beam.ActivateBeam(beamDuration);
+            }
+            else
+            {
+                StartCoroutine(WaitAndResumePostBeamDiveRoutine(boss, beamDuration));
+            }
+        }
+
+        private IEnumerator WaitAndResumePostBeamDiveRoutine(EnemyBase boss, float duration)
+        {
+            yield return new WaitForSeconds(duration);
+            ResumeBossPostBeamDive(boss);
+        }
+
+        private void ResumeBossPostBeamDive(EnemyBase boss)
+        {
+            if (boss == null || boss.CurrentState == EnemyState.Dead)
+            {
+                _activeDivingEnemies.Remove(boss);
+                return;
+            }
+
+            boss.SetState(EnemyState.Diving);
+            Vector2 playerPos = GetPredictedPlayerPosition();
+            BezierSegment[] postSegments = CreateBossPostBeamDiveTrajectory(boss.transform.position, playerPos, _screenBottomY);
+
+            BezierPathFollower follower = boss.GetComponent<BezierPathFollower>();
+            if (follower != null)
+            {
+                follower.SetPath(postSegments, _diveSpeed, false);
+                Action onCompleted = null;
+                onCompleted = () =>
+                {
+                    follower.OnPathCompleted -= onCompleted;
+                    OnDivePathCompleted(boss);
+                };
+                follower.OnPathCompleted += onCompleted;
+                follower.Play();
             }
         }
 
@@ -567,6 +708,53 @@ namespace Galaga.Gameplay.Enemy
         public void ForceDive(EnemyBase enemy)
         {
             LaunchSingleDive(enemy);
+        }
+
+        /// <summary>
+        /// 테스트 또는 외부에서 보스의 트랙터 빔 다이브를 강제 발동합니다.
+        /// </summary>
+        public void ForceBossTractorBeamDive(EnemyBase boss, float hoverY = 1.0f, float beamDuration = 4.0f)
+        {
+            LaunchBossTractorBeamDive(boss, hoverY, beamDuration);
+        }
+
+        /// <summary>
+        /// 보스 트랙터 빔 전개를 위한 호버링 고도 진입 궤적(3차 베지어 2구간)을 생성합니다.
+        /// </summary>
+        public static BezierSegment[] CreateBossTractorHoverTrajectory(Vector2 startPos, Vector2 hoverPos)
+        {
+            float sign = (startPos.x > hoverPos.x) ? -1f : 1f;
+            Vector2 midPoint = new Vector2((startPos.x + hoverPos.x) * 0.5f + sign * 1.0f, (startPos.y + hoverPos.y) * 0.5f + 1.0f);
+
+            BezierSegment seg1 = new BezierSegment(
+                startPos,
+                startPos + new Vector2(sign * 2.0f, 2.0f),
+                startPos + new Vector2(sign * 3.5f, -1.0f),
+                midPoint
+            );
+
+            BezierSegment seg2 = new BezierSegment(
+                midPoint,
+                midPoint + new Vector2(-sign * 1.5f, -2.0f),
+                hoverPos + new Vector2(0f, 2.0f),
+                hoverPos
+            );
+
+            return new BezierSegment[] { seg1, seg2 };
+        }
+
+        /// <summary>
+        /// 트랙터 빔 종료 후 보스가 하단으로 급강하 복귀하는 궤적을 생성합니다.
+        /// </summary>
+        public static BezierSegment[] CreateBossPostBeamDiveTrajectory(Vector2 hoverPos, Vector2 playerPos, float screenBottomY)
+        {
+            float sign = (hoverPos.x > playerPos.x) ? -1f : 1f;
+            Vector2 p1 = hoverPos + new Vector2(0f, -2.0f);
+            Vector2 p2 = playerPos + new Vector2(sign * 1.0f, 2.0f);
+            Vector2 p3 = new Vector2(playerPos.x, screenBottomY);
+
+            BezierSegment seg = new BezierSegment(hoverPos, p1, p2, p3);
+            return new BezierSegment[] { seg };
         }
     }
 }

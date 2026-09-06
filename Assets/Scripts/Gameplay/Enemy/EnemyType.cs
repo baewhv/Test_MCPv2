@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Galaga.Gameplay.Enemy
 {
@@ -23,6 +23,7 @@ namespace Galaga.Gameplay.Enemy
         Formation,  // 편대 슬롯 안착 및 호흡(Hovering) 중
         Diving,     // 플레이어를 향한 급강하 공격 비행 중
         Returning,  // 화면 하단 이탈 후 상단 재진입 복귀 중
-        Dead        // 격파/사망 상태
+        Dead,       // 격파/사망 상태
+        TractorBeam // 트랙터 빔 호버링 및 발사 중
     }
 }
