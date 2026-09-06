@@ -1,7 +1,7 @@
 # 개발 및 기획 진행 상태 (Status)
 
 ## [현재 상태]
-- **진행 상태**: [Developer] [Refactor] IDamageable 인터페이스 도입 및 피격 파이프라인 디커플링 작업 착수 ➔ Developer 구현 진행 중
+- **진행 상태**: [QA] [Refactor IDamageable 인터페이스 도입 및 피격 파이프라인 디커플링] PR #15 검수 및 테스트 작성 요청 ➔ QA에게 검수 인계
 - **작업 브랜치**: `refactor/idamageable-pipeline`
 
 ---
