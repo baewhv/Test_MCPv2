@@ -1,8 +1,8 @@
 # 개발 및 기획 진행 상태 (Status)
 
 ## [현재 상태]
-- **진행 상태**: [Developer] [Refactor IDamageable 인터페이스 도입 및 피격 파이프라인 디커플링] C# 구현 및 커밋 완료 ➔ git_manager에게 PR 발행 인계
-- **작업 브랜치**: `refactor/idamageable-pipeline`
+- **진행 상태**: [QA] [Refactor IDamageable 인터페이스 도입 및 피격 파이프라인 디커플링] QA 4대 검수 통과 및 PR #15 머지 완료 ➔ PM에게 1루프 최종 완료 보고
+- **작업 브랜치**: `develop`
 
 ---
 
