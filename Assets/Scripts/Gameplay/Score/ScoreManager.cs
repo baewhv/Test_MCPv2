@@ -72,6 +72,11 @@ namespace Galaga.Gameplay.Score
         /// </summary>
         public event Action<int> OnExtendLife;
 
+        /// <summary>
+        /// 챌린징 스테이지 격파 보너스 지급 시 발행되는 이벤트 (격파 수, 지급 보너스 점수 전달)
+        /// </summary>
+        public event Action<int, int> OnChallengingBonusAwarded;
+
         // -------------------------------------------------------------
         // 5. 유니티 생명주기 메서드 (Lifecycle Methods)
         // -------------------------------------------------------------
@@ -100,6 +105,7 @@ namespace Galaga.Gameplay.Score
             OnScoreChanged = null;
             OnHighScoreChanged = null;
             OnExtendLife = null;
+            OnChallengingBonusAwarded = null;
         }
 
         // -------------------------------------------------------------
@@ -222,6 +228,58 @@ namespace Galaga.Gameplay.Score
         {
             int points = CalculateEnemyScore(type, isDiving, escortCount);
             AddScore(points);
+        }
+
+        /// <summary>
+        /// 적 기체 객체로부터 직접 점수를 산정하여 가산합니다.
+        /// </summary>
+        /// <param name="enemy">격파된 적 기체</param>
+        public void AddScore(EnemyBase enemy)
+        {
+            if (enemy == null)
+            {
+                return;
+            }
+
+            AddEnemyScore(enemy.Type, enemy.CurrentState == EnemyState.Diving, enemy.EscortCount);
+        }
+
+        /// 챌린징 스테이지 종료 시 격파 수에 따른 보너스 점수를 계산합니다.
+        /// 40기 완파 시 10,000점 (PERFECT), 그 외에는 격파 수 * 100점.
+        /// </summary>
+        /// <param name="hitCount">격파한 적 기체 수 (0~40)</param>
+        /// <param name="maxEnemies">총 적 기체 수 (기본 40)</param>
+        /// <returns>산정된 보너스 점수</returns>
+        public static int CalculateChallengingBonus(int hitCount, int maxEnemies = 40)
+        {
+            if (hitCount <= 0)
+            {
+                return 0;
+            }
+
+            if (hitCount >= maxEnemies)
+            {
+                return 10000;
+            }
+
+            return hitCount * 100;
+        }
+
+        /// <summary>
+        /// 챌린징 스테이지 격파 보너스를 가산합니다.
+        /// </summary>
+        /// <param name="hitCount">격파한 적 기체 수</param>
+        /// <returns>지급된 보너스 점수</returns>
+        public int AddChallengingBonus(int hitCount)
+        {
+            int bonus = CalculateChallengingBonus(hitCount);
+            if (bonus > 0)
+            {
+                AddScore(bonus);
+            }
+
+            OnChallengingBonusAwarded?.Invoke(hitCount, bonus);
+            return bonus;
         }
 
         // -------------------------------------------------------------

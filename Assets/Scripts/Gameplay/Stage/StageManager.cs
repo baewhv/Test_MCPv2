@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Galaga.Gameplay.Enemy;
+
+using Galaga.Gameplay.Score;
 using Galaga.Gameplay.Player;
 
 namespace Galaga.Gameplay.Stage
@@ -46,6 +48,9 @@ namespace Galaga.Gameplay.Stage
         [Tooltip("적 급강하 컨트롤러 참조")]
         [SerializeField] private EnemyDiveController _enemyDiveController;
 
+        [Tooltip("챌린징 스테이지 매니저 참조")]
+        [SerializeField] private ChallengingStageManager _challengingStageManager;
+
         [Tooltip("플레이어 체력/사망 이벤트 참조")]
         [SerializeField] private PlayerHealth _playerHealth;
 
@@ -55,6 +60,7 @@ namespace Galaga.Gameplay.Stage
         private int _currentStage = 1;
         private int _aliveEnemyCount = 0;
         private int _spawnedEnemyCount = 0;
+        private int _destroyedEnemyCount = 0;
         private bool _isStageInProgress = false;
         private bool _isStageClearing = false;
         private bool _isChallengingStage = false;
@@ -73,6 +79,7 @@ namespace Galaga.Gameplay.Stage
         public int AliveEnemyCount => _aliveEnemyCount;
         public int TotalStageEnemies => _totalStageEnemies;
         public int SpawnedEnemyCount => _spawnedEnemyCount;
+        public int DestroyedEnemyCount => _destroyedEnemyCount;
         public bool IsStageInProgress => _isStageInProgress;
         public bool IsStageClearing => _isStageClearing;
         public bool IsChallengingStage => _isChallengingStage;
@@ -160,6 +167,10 @@ namespace Galaga.Gameplay.Stage
         public event Action<bool> OnChallengingStageTriggered;
 
         /// <summary>
+        /// 챌린징 스테이지 종료 시 격파 보너스 정산 이벤트 (격파수, 보너스 점수)
+        /// </summary>
+        public event Action<int, int> OnChallengingBonusAwarded;
+        /// <summary>
         /// 적 40기 전체 섬멸(0기) 감지 시 즉시 발행되는 이벤트
         /// </summary>
         public event Action OnAllEnemiesDefeated;
@@ -203,13 +214,14 @@ namespace Galaga.Gameplay.Stage
             }
         }
 
-        private void OnEnable()
+private void OnEnable()
         {
             BindEntranceSequenceManager();
+            BindChallengingStageManager();
             BindPlayerHealth();
         }
 
-        private void OnDisable()
+private void OnDisable()
         {
             if (Instance == this)
             {
@@ -218,6 +230,7 @@ namespace Galaga.Gameplay.Stage
 
             StopAllStageCoroutines();
             UnbindEntranceSequenceManager();
+            UnbindChallengingStageManager();
             UnbindPlayerHealth();
             ClearRegisteredEnemies();
 
@@ -226,6 +239,7 @@ namespace Galaga.Gameplay.Stage
             OnStageCleared = null;
             OnEnemyCountChanged = null;
             OnChallengingStageTriggered = null;
+            OnChallengingBonusAwarded = null;
             OnAllEnemiesDefeated = null;
             OnEnemyRegistered = null;
             OnEnemyUnregistered = null;
@@ -271,6 +285,7 @@ namespace Galaga.Gameplay.Stage
             _currentStage = Mathf.Max(1, startingStage);
             _aliveEnemyCount = 0;
             _spawnedEnemyCount = 0;
+            _destroyedEnemyCount = 0;
             _isStageInProgress = false;
             _isStageClearing = false;
             _isEntranceSequenceFinished = false;
@@ -308,6 +323,7 @@ namespace Galaga.Gameplay.Stage
             _currentStage = Mathf.Max(1, stageNumber);
             _aliveEnemyCount = 0;
             _spawnedEnemyCount = 0;
+            _destroyedEnemyCount = 0;
             _isStageInProgress = true;
             _isStageClearing = false;
             _isEntranceSequenceFinished = false;
@@ -431,7 +447,7 @@ namespace Galaga.Gameplay.Stage
             }
 
             _aliveEnemyCount = Mathf.Max(0, _aliveEnemyCount - 1);
-
+            _destroyedEnemyCount++;
             OnEnemyCountChanged?.Invoke(_aliveEnemyCount);
 
             CheckStageClearCondition();
@@ -467,7 +483,10 @@ namespace Galaga.Gameplay.Stage
         /// <summary>
         /// 스테이지 클리어 연출 및 시퀀스를 실행합니다.
         /// </summary>
-        private void TriggerStageClear()
+/// <summary>
+        /// 스테이지 클리어 연출 및 시퀀스를 실행합니다.
+        /// </summary>
+        public void TriggerStageClear()
         {
             _isStageClearing = true;
             _isStageInProgress = false;
@@ -480,6 +499,16 @@ namespace Galaga.Gameplay.Stage
 
             OnAllEnemiesDefeated?.Invoke();
             OnStageCleared?.Invoke(_currentStage);
+
+            if (_isChallengingStage)
+            {
+                int bonus = ScoreManager.CalculateChallengingBonus(_destroyedEnemyCount);
+                if (ScoreManager.Instance != null)
+                {
+                    ScoreManager.Instance.AddScore(bonus);
+                }
+                OnChallengingBonusAwarded?.Invoke(_destroyedEnemyCount, bonus);
+            }
 
             if (_stageClearCoroutine != null)
             {
@@ -569,6 +598,28 @@ namespace Galaga.Gameplay.Stage
                 _playerHealth.OnPlayerDied -= HandlePlayerDied;
             }
         }
+
+private void BindChallengingStageManager()
+        {
+            if (_challengingStageManager != null)
+            {
+                _challengingStageManager.OnChallengingStageCompleted += HandleChallengingStageCompleted;
+            }
+        }
+
+        private void UnbindChallengingStageManager()
+        {
+            if (_challengingStageManager != null)
+            {
+                _challengingStageManager.OnChallengingStageCompleted -= HandleChallengingStageCompleted;
+            }
+        }
+
+        private void HandleChallengingStageCompleted(ChallengingStageResult result)
+        {
+            OnChallengingBonusAwarded?.Invoke(result.HitCount, result.BonusScore);
+        }
+
 
         private void HandlePlayerDied()
         {

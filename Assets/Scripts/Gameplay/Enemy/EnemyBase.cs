@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using Galaga.Core;
 using Galaga.Gameplay.Combat;
 using Galaga.Gameplay.Score;
 
@@ -56,7 +57,6 @@ namespace Galaga.Gameplay.Enemy
             get => _escortCount;
             set => _escortCount = value;
         }
-
         private void Awake()
         {
             if (_pathFollower == null)
@@ -111,7 +111,7 @@ namespace Galaga.Gameplay.Enemy
             _enemyData = data;
             if (_enemyData != null)
             {
-                _currentHP = _enemyData.MaxHp;
+                _currentHP = _enemyData.MaxHP;
                 ApplyColor(_enemyData.NormalColor);
             }
             else
@@ -134,6 +134,14 @@ namespace Galaga.Gameplay.Enemy
 
             _currentState = newState;
             OnStateChanged?.Invoke(this, _currentState);
+        }
+
+        /// <summary>
+        /// 편대 진입 또는 복귀 완료 후 상단 그리드 대기 상태(GridHovering)로 진입합니다.
+        /// </summary>
+        public void EnterFormation()
+        {
+            SetState(EnemyState.Formation);
         }
 
         /// <summary>
@@ -174,11 +182,13 @@ namespace Galaga.Gameplay.Enemy
         /// </summary>
         public void Die()
         {
+            EnemyState prevState = _currentState;
             SetState(EnemyState.Dead);
 
             if (ScoreManager.Instance != null)
             {
-                ScoreManager.Instance.AddScore(this);
+                bool isDiving = (prevState == EnemyState.Diving || prevState == EnemyState.Entering || prevState == EnemyState.Returning);
+                ScoreManager.Instance.AddEnemyScore(Type, isDiving, EscortCount);
             }
 
             if (ExplosionManager.Instance != null)
@@ -191,10 +201,25 @@ namespace Galaga.Gameplay.Enemy
             gameObject.SetActive(false);
         }
 
+/// <summary>
+        /// 현재 상태(대기/비행)에 대응하는 점수 값을 반환합니다.
+        /// </summary>
+        public int GetCurrentScoreValue()
+        {
+            if (_enemyData == null)
+            {
+                return 0;
+            }
+
+            bool isDiving = (_currentState == EnemyState.Diving || _currentState == EnemyState.Entering || _currentState == EnemyState.Returning);
+            return isDiving ? _enemyData.ScoreDive : _enemyData.ScoreStay;
+        }
+
+
         /// <summary>
         /// 진입 또는 다이브 비행 경로를 할당하고 추적을 시작합니다.
         /// </summary>
-        public void StartPathFollow(BezierCurve curve, float duration, bool alignRotation = true)
+public void StartPathFollow(BezierSegment[] segments, float speed, bool alignRotation = true)
         {
             if (_pathFollower == null)
             {
@@ -203,7 +228,8 @@ namespace Galaga.Gameplay.Enemy
 
             if (_pathFollower != null)
             {
-                _pathFollower.SetCurve(curve, duration, alignRotation);
+                _pathFollower.SetPath(segments, speed, false);
+                _pathFollower.RotateAlongPath = alignRotation;
                 _pathFollower.Play();
             }
         }
@@ -212,7 +238,7 @@ namespace Galaga.Gameplay.Enemy
         {
             if (_currentState == EnemyState.Entering)
             {
-                SetState(EnemyState.GridHovering);
+                SetState(EnemyState.Formation);
             }
             else if (_currentState == EnemyState.Diving)
             {

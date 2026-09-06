@@ -13,6 +13,9 @@ namespace Galaga.Gameplay.Enemy
     public class EnemyShooting : MonoBehaviour
     {
         [Header("Shooting Settings")]
+        [Tooltip("탄환 발사 가능 여부 (챌린징 스테이지 등에서 비활성화)")]
+        [SerializeField] private bool _canFire = true;
+
         [Tooltip("급강하 중 발사할 최대 탄환 수")]
         [SerializeField] private int _maxShotsPerDive = 1;
 
@@ -42,6 +45,12 @@ namespace Galaga.Gameplay.Enemy
         private float _lastShotTime = -10f;
 
         public event Action<Vector3, Vector2> OnShotFired;
+
+        public bool CanFire
+        {
+            get => _canFire;
+            set => _canFire = value;
+        }
 
         public int MaxShotsPerDive
         {
@@ -139,14 +148,14 @@ namespace Galaga.Gameplay.Enemy
             }
         }
 
-        private void HandleProgressChanged(float progress)
+private void HandleProgressChanged(float progress)
         {
-            if (_enemyBase == null || _enemyBase.CurrentState != EnemyState.Diving || _enemyBase.IsDead)
+            if (!_canFire || GlobalShootingBlocked || _enemyBase == null || _enemyBase.CurrentState != EnemyState.Diving || _enemyBase.IsDead)
             {
                 return;
             }
 
-            if (CanShoot(progress, _shotsFiredThisDive, _maxShotsPerDive, _fireProgressMin, _fireProgressMax))
+            if (CanShoot(progress, _shotsFiredThisDive, _maxShotsPerDive, _fireProgressMin, _fireProgressMax, _canFire))
             {
                 if (Time.time - _lastShotTime >= _shotCooldown)
                 {
@@ -160,6 +169,10 @@ namespace Galaga.Gameplay.Enemy
         /// </summary>
         public bool TryFireAtPlayer()
         {
+            if (!_canFire || GlobalShootingBlocked)
+            {
+                return false;
+            }
             if (_bulletPool == null)
             {
                 _bulletPool = EnemyBulletPool.Instance;
@@ -193,9 +206,23 @@ namespace Galaga.Gameplay.Enemy
         /// <summary>
         /// 현재 진행도와 발사 횟수에 따라 다이브 중 사격이 가능한지 판정하는 순수 판정 로직입니다 (단위 테스트용).
         /// </summary>
-        public static bool CanShoot(float progress, int currentShots, int maxShots, float minT = 0.3f, float maxT = 0.6f)
+/// <summary>
+        /// 챌린징 스테이지 등 전역에서 모든 적 기체의 사격을 일괄 차단하는 정적 플래그입니다.
+        /// </summary>
+        public static bool GlobalShootingBlocked { get; set; } = false;
+
+        public bool IsShootingEnabled
         {
-            if (currentShots >= maxShots)
+            get => _canFire && !GlobalShootingBlocked;
+            set => _canFire = value;
+        }
+
+        /// <summary>
+        /// 현재 진행도와 발사 횟수에 따라 다이브 중 사격이 가능한지 판정하는 순수 판정 로직입니다 (단위 테스트용).
+        /// </summary>
+        public static bool CanShoot(float progress, int currentShots, int maxShots, float minT = 0.3f, float maxT = 0.6f, bool canFire = true)
+        {
+            if (!canFire || GlobalShootingBlocked || currentShots >= maxShots)
             {
                 return false;
             }
