@@ -18,9 +18,9 @@ description: 작업 브랜치의 커밋 내역을 확인하고 원격 푸시 후
    ```
 2. `git status`로 `.meta` 파일 누락 여부를 최종 검증합니다 (`docs/` 문서는 커밋되지 않고 로컬에 유지됨).
 
-### [2단계: 작업 브랜치 원격 푸시]
+### [2단계: 작업 브랜치 원격 상태 동기화 확인 및 안전 푸시]
 ```bash
-git push -u origin [작업브랜치명]
+git push origin HEAD
 ```
 
 ### [3단계: GitHub Pull Request 생성 (Clean PR)]

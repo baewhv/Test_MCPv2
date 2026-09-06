@@ -31,10 +31,11 @@ description: Developer 에이전트가 docs/tech_spec/ 변경사항을 분석하
 3. 표준 터미널 Git 명령어로 작업 브랜치에서 **순수 작업물(`Assets/`)만** 직접 커밋합니다 (`docs/` 문서는 로컬 보존):
    ```bash
    git add Assets/
-   # 버그 수정 시: git commit -m "[fix] : [버그명] 수정 및 컴파일 검증 완료"
+   # 결함 수정 시: git commit -m "[fix] : [버그명] 원인 수정 및 검증 완료"
    # 구조 개선 시: git commit -m "[refactor] : [개선명] 구조 개선 및 최적화 완료"
+   git push origin HEAD
    ```
-4. **물리적 커밋 생성 증거 확인 (Proof-of-Commit)**:
+4. **물리적 커밋 및 푸시 증거 확인 (Proof-of-Commit)**:
    ```bash
    git log -1 --oneline
    ```
