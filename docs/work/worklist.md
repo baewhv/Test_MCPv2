@@ -4,10 +4,12 @@
 각 작업은 Developer ➔ GitManager ➔ QA 단일 루프를 통해 순차적으로 완수됩니다.
 
 ## 사용자 최우선 지시 사항
+- [x] **[Fix] 탄환 발사 시 발사자 셀프 데미지 방지 및 피격 대상 필터링** (PR #20 / Issue #19): 플레이어 탄환은 적에게만, 적 탄환은 플레이어에게만 데미지를 입히도록 IDamageable 및 충돌 판정 필터링을 개선하여 발사자 자폭 결함 해결.
 - [x] CombatTests.cs에서 에러 발생. 원인을 파악하고 해결 필요. (PR #8)
 - [x] **[Refactor] PlayAreaManager 카메라 컴포넌트 분리 및 독립 매니저 계층화** (PR #9)
 - [x] **[Refactor] IDamageable 인터페이스 도입 및 피격 파이프라인 디커플링** (PR #15): EnemyBase와 PlayerHealth에 IDamageable 인터페이스를 구현하고, PlayerBullet/EnemyBullet의 구체 클래스 의존성을 인터페이스 기반으로 디커플링하여 확장성 확보.
 - [x] **[Fix] Rigidbody2D 기반 탄환 이동 전환 및 터널링 방지/피격 피드백 강화** (PR #12): Transform.position 직접 이동을 Rigidbody2D.velocity/MovePosition 물리 이동으로 전면 교체하여 Continuous 충돌 스윕 보장, BoxCollider2D 크기 정규화(1.0, 1.0), EnemyBase 피격 플래시 시간 상향(0.15s) 및 시각 스파크 피드백 개선.
+
 
 ---
 
