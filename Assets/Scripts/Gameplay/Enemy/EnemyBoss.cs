@@ -122,6 +122,14 @@ namespace Galaga.Gameplay.Enemy
         }
 
         /// <summary>
+        /// 트랙터 빔 급강하 비행 시작 시 이벤트를 발생시킵니다.
+        /// </summary>
+        public void NotifyTractorBeamDiveStarted()
+        {
+            OnTractorBeamDiveStarted?.Invoke(this);
+        }
+
+        /// <summary>
         /// 트랙터 빔 호버링 고도에 도달했을 때 빔 전개를 시작합니다.
         /// </summary>
         public void StartTractorBeam()

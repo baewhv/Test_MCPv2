@@ -46,6 +46,7 @@ namespace Galaga.Gameplay.Enemy
         private int _currentWaveIndex = 0;
         private int _totalSpawnedCount = 0;
         private int _totalArrivedCount = 0;
+        private int _totalDestroyedDuringEntrance = 0;
         private Coroutine _sequenceCoroutine;
         private readonly List<EnemyBase> _activeEnemies = new List<EnemyBase>();
 
@@ -100,6 +101,7 @@ namespace Galaga.Gameplay.Enemy
         public int CurrentWaveIndex => _currentWaveIndex;
         public int TotalSpawnedCount => _totalSpawnedCount;
         public int TotalArrivedCount => _totalArrivedCount;
+        public int TotalDestroyedDuringEntrance => _totalDestroyedDuringEntrance;
         public IReadOnlyList<EnemyBase> ActiveEnemies => _activeEnemies;
 
         private void Start()
@@ -161,6 +163,7 @@ namespace Galaga.Gameplay.Enemy
             _isSequenceRunning = true;
             _totalSpawnedCount = 0;
             _totalArrivedCount = 0;
+            _totalDestroyedDuringEntrance = 0;
             _activeEnemies.Clear();
 
             for (int wave = 1; wave <= 5; wave++)
@@ -178,8 +181,8 @@ namespace Galaga.Gameplay.Enemy
                 }
             }
 
-            // 모든 적이 안착할 때까지 대기
-            while (_totalArrivedCount < _totalSpawnedCount)
+            // 모든 적이 안착하거나 진입 중 파괴될 때까지 대기
+            while ((_totalArrivedCount + _totalDestroyedDuringEntrance) < _totalSpawnedCount)
             {
                 yield return null;
             }
@@ -238,6 +241,23 @@ namespace Galaga.Gameplay.Enemy
             BezierSegment[] trajectory = CreateEntranceTrajectory(waveIndex, targetPos);
 
             enemy.SetState(EnemyState.Entering);
+
+            Action<EnemyBase> onDestroyedDuringEntrance = null;
+            onDestroyedDuringEntrance = (destroyedEnemy) =>
+            {
+                destroyedEnemy.OnDestroyed -= onDestroyedDuringEntrance;
+                _activeEnemies.Remove(destroyedEnemy);
+                if (_isSequenceRunning)
+                {
+                    _totalDestroyedDuringEntrance++;
+                }
+                if (_gridManager != null)
+                {
+                    _gridManager.ReleaseEnemy(destroyedEnemy);
+                }
+            };
+            enemy.OnDestroyed += onDestroyedDuringEntrance;
+
             BezierPathFollower follower = enemy.PathFollower;
             if (follower != null)
             {
@@ -249,6 +269,7 @@ namespace Galaga.Gameplay.Enemy
                 // 도착 콜백 바인딩
                 follower.OnPathCompleted += () =>
                 {
+                    enemy.OnDestroyed -= onDestroyedDuringEntrance;
                     _totalArrivedCount++;
                     enemy.EnterFormation();
                 };
