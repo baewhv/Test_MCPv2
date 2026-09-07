@@ -306,7 +306,17 @@ public void StartPathFollow(BezierSegment[] segments, float speed, bool alignRot
                 return;
             }
 
-            if (collision.CompareTag("PlayerBullet") || collision.name.Contains("Bullet"))
+            // 적 탄환 및 적 아군 충돌 무시 (자폭 및 오폭 방지)
+            if (collision.CompareTag("EnemyBullet") || collision.CompareTag("Enemy") ||
+                collision.GetComponent<EnemyBullet>() != null ||
+                collision.name.Contains("EnemyBullet"))
+            {
+                return;
+            }
+
+            // 플레이어 탄환 피격 처리
+            if (collision.CompareTag("PlayerBullet") || collision.GetComponent<PlayerBullet>() != null ||
+                (collision.name.Contains("PlayerBullet") && !collision.name.Contains("EnemyBullet")))
             {
                 if (collision.TryGetComponent<PlayerBullet>(out var bullet))
                 {
@@ -330,7 +340,17 @@ public void StartPathFollow(BezierSegment[] segments, float speed, bool alignRot
                 return;
             }
 
-            if (other.CompareTag("PlayerBullet") || other.name.Contains("Bullet"))
+            // 적 탄환 및 적 아군 충돌 무시 (자폭 및 오폭 방지)
+            if (other.CompareTag("EnemyBullet") || other.CompareTag("Enemy") ||
+                other.GetComponent<EnemyBullet>() != null ||
+                other.name.Contains("EnemyBullet"))
+            {
+                return;
+            }
+
+            // 플레이어 탄환 피격 처리
+            if (other.CompareTag("PlayerBullet") || other.GetComponent<PlayerBullet>() != null ||
+                (other.name.Contains("PlayerBullet") && !other.name.Contains("EnemyBullet")))
             {
                 if (other.TryGetComponent<PlayerBullet>(out var bullet))
                 {

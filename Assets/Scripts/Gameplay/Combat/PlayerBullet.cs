@@ -214,6 +214,15 @@ public void SetupComponents()
                 return;
             }
 
+            // 플레이어 본인 및 플레이어 아군/탄환과의 충돌 무시 (발사자 오폭 및 자폭 방지)
+            if (collision.CompareTag("Player") || collision.CompareTag("PlayerBullet") ||
+                collision.GetComponent<Galaga.Gameplay.Player.PlayerHealth>() != null ||
+                collision.GetComponent<Galaga.Gameplay.Player.PlayerController>() != null ||
+                collision.name.Contains("Player"))
+            {
+                return;
+            }
+
             // 피격 대상(IDamageable) 또는 적 충돌 판정 시 데미지 부여 및 풀 반환
             if (collision.TryGetComponent<IDamageable>(out var damageable))
             {
@@ -238,6 +247,15 @@ public void SetupComponents()
             if (other.CompareTag("Boundary") || other.gameObject.name == "TopBorder" || other.name.Contains("Border"))
             {
                 ReturnToPool();
+                return;
+            }
+
+            // 플레이어 본인 및 플레이어 아군/탄환과의 충돌 무시 (발사자 오폭 및 자폭 방지)
+            if (other.CompareTag("Player") || other.CompareTag("PlayerBullet") ||
+                other.GetComponent<Galaga.Gameplay.Player.PlayerHealth>() != null ||
+                other.GetComponent<Galaga.Gameplay.Player.PlayerController>() != null ||
+                other.name.Contains("Player"))
+            {
                 return;
             }
 

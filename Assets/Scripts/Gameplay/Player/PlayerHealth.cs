@@ -248,6 +248,15 @@ namespace Galaga.Gameplay.Player
             {
                 return;
             }
+
+            // 플레이어 탄환 및 플레이어 본인과의 충돌 무시 (발사자 자폭 및 아군 충돌 방지)
+            if (collision.CompareTag("PlayerBullet") || collision.CompareTag("Player") ||
+                collision.GetComponent<PlayerBullet>() != null ||
+                (collision.name.Contains("PlayerBullet") && !collision.name.Contains("EnemyBullet")))
+            {
+                return;
+            }
+
             if (collision.CompareTag("EnemyBullet") || collision.name.Contains("EnemyBullet"))
             {
                 if (collision.TryGetComponent<EnemyBullet>(out var bullet))
@@ -277,6 +286,15 @@ namespace Galaga.Gameplay.Player
             {
                 return;
             }
+
+            // 플레이어 탄환 및 플레이어 본인과의 충돌 무시 (발사자 자폭 및 아군 충돌 방지)
+            if (other.CompareTag("PlayerBullet") || other.CompareTag("Player") ||
+                other.GetComponent<PlayerBullet>() != null ||
+                (other.name.Contains("PlayerBullet") && !other.name.Contains("EnemyBullet")))
+            {
+                return;
+            }
+
             if (other.CompareTag("EnemyBullet") || other.name.Contains("EnemyBullet"))
             {
                 if (other.TryGetComponent<EnemyBullet>(out var bullet))
