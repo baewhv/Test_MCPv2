@@ -9,6 +9,8 @@
 - [x] **[Refactor] PlayAreaManager 카메라 컴포넌트 분리 및 독립 매니저 계층화** (PR #9)
 - [x] **[Refactor] IDamageable 인터페이스 도입 및 피격 파이프라인 디커플링** (PR #15): EnemyBase와 PlayerHealth에 IDamageable 인터페이스를 구현하고, PlayerBullet/EnemyBullet의 구체 클래스 의존성을 인터페이스 기반으로 디커플링하여 확장성 확보.
 - [x] **[Fix] Rigidbody2D 기반 탄환 이동 전환 및 터널링 방지/피격 피드백 강화** (PR #12): Transform.position 직접 이동을 Rigidbody2D.velocity/MovePosition 물리 이동으로 전면 교체하여 Continuous 충돌 스윕 보장, BoxCollider2D 크기 정규화(1.0, 1.0), EnemyBase 피격 플래시 시간 상향(0.15s) 및 시각 스파크 피드백 개선.
+- [x] **[Asset] 플레이어 및 적 기체 디자인 및 스프라이트 제작** (`Assets/_Imports/Sprites/`)
+- [ ] 기체 디자인이 제작된다면 Developer가 세팅.
 
 
 ---

@@ -1,8 +1,8 @@
 # 개발 및 기획 진행 상태 (Status)
 
 ## [현재 상태]
-- **진행 상태**: [QA] [Fix] 탄환 발사 시 발사자 셀프 데미지 방지 및 피격 대상 필터링 (Issue #19) QA 4대 검수 통과 (157/157 Pass) 및 PR #20 승인 완료 ➔ 사용자 최종 Merge 대기
-- **작업 브랜치**: `fix/issue-19-bullet-self-damage` (PR #20)
+- **진행 상태**: [Artist] 플레이어 및 적 기체 3종 2D 스프라이트 제작 및 `Assets/_Imports/Sprites/` 배치 완료 ➔ Developer 프리팹 세팅 대기
+- **작업 브랜치**: `develop`
 
 
 
