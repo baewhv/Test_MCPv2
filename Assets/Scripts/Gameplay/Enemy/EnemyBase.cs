@@ -112,6 +112,18 @@ namespace Galaga.Gameplay.Enemy
             if (_enemyData != null)
             {
                 _currentHP = _enemyData.MaxHP;
+                if (_enemyData.Sprite != null)
+                {
+                    if (_renderer == null)
+                    {
+                        _renderer = GetComponent<Renderer>();
+                    }
+
+                    if (_renderer is SpriteRenderer spriteRenderer)
+                    {
+                        spriteRenderer.sprite = _enemyData.Sprite;
+                    }
+                }
                 ApplyColor(_enemyData.NormalColor);
             }
             else

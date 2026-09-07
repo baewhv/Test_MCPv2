@@ -144,5 +144,42 @@ namespace Galaga.Tests
             _enemy.SetState(EnemyState.Entering);
             Assert.AreEqual(100, _enemy.GetCurrentScoreValue());
         }
+
+        [Test]
+        public void EnemyDataSO_Sprite_CanBeSetAndRetrieved()
+        {
+            Texture2D tex = new Texture2D(16, 16);
+            Sprite testSprite = Sprite.Create(tex, new Rect(0, 0, 16, 16), new Vector2(0.5f, 0.5f));
+
+            EnemyDataSO spriteData = ScriptableObject.CreateInstance<EnemyDataSO>();
+            spriteData.Initialize(
+                type: EnemyType.Zako,
+                enemyName: "SpriteZako",
+                maxHp: 1,
+                scoreStay: 50,
+                scoreDive: 100,
+                moveSpeed: 10f,
+                normalColor: Color.white,
+                damagedColor: Color.white,
+                flashColor: Color.white,
+                flashDuration: 0.1f,
+                sprite: testSprite
+            );
+
+            Assert.AreEqual(testSprite, spriteData.Sprite);
+
+            GameObject enemyObj = new GameObject("SpriteEnemy");
+            SpriteRenderer sr = enemyObj.AddComponent<SpriteRenderer>();
+            EnemyBase enemy = enemyObj.AddComponent<EnemyBase>();
+
+            enemy.Initialize(spriteData);
+
+            Assert.AreEqual(testSprite, sr.sprite);
+
+            Object.DestroyImmediate(enemyObj);
+            Object.DestroyImmediate(spriteData);
+            Object.DestroyImmediate(testSprite);
+            Object.DestroyImmediate(tex);
+        }
     }
 }

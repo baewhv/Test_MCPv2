@@ -29,8 +29,11 @@ namespace Galaga.Gameplay.Enemy
         [SerializeField] private float _moveSpeed = 10f;
 
         [Header("Visual & FX")]
+        [Tooltip("적 기체 2D 스프라이트")]
+        [SerializeField] private Sprite _sprite;
+
         [Tooltip("기본 외형 색상")]
-        [SerializeField] private Color _normalColor = Color.blue;
+        [SerializeField] private Color _normalColor = Color.white;
 
         [Tooltip("피격 손상 상태 색상 (보스 갤러그 1타 피격 시 등)")]
         [SerializeField] private Color _damagedColor = Color.cyan;
@@ -47,6 +50,7 @@ namespace Galaga.Gameplay.Enemy
         public int ScoreStay => _scoreStay;
         public int ScoreDive => _scoreDive;
         public float MoveSpeed => _moveSpeed;
+        public Sprite Sprite => _sprite;
         public Color NormalColor => _normalColor;
         public Color DamagedColor => _damagedColor;
         public Color FlashColor => _flashColor;
@@ -65,7 +69,8 @@ namespace Galaga.Gameplay.Enemy
             Color normalColor,
             Color damagedColor,
             Color flashColor,
-            float flashDuration = 0.15f)
+            float flashDuration = 0.15f,
+            Sprite sprite = null)
         {
             _enemyType = type;
             _enemyName = enemyName;
@@ -77,6 +82,10 @@ namespace Galaga.Gameplay.Enemy
             _damagedColor = damagedColor;
             _flashColor = flashColor;
             _flashDuration = Mathf.Max(0.01f, flashDuration);
+            if (sprite != null)
+            {
+                _sprite = sprite;
+            }
         }
     }
 }
