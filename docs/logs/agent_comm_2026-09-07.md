@@ -11,3 +11,7 @@
 | 14:17:37 | Artist | PM | 리소스 제작 완료 | 플레이어 및 적 기체 3종 스프라이트 제작 및 Assets/_Imports/Sprites/ 배치 완료 |
 | 14:19:06 | PM | GitManager | 커밋 요청 | develop 브랜치에서 리소스 에셋 및 작업 문서 커밋/푸시 요청 |
 | 14:19:36 | GitManager | PM | 커밋 완료 보고 | develop 브랜치 커밋(57dcda6) 및 origin/develop 푸시 완료 |
+| 14:22:37 | GitManager | Developer | 브랜치 준비 | feat/setup-ship-sprites 브랜치 분리 및 로컬 체크아웃 검증 완료, 개발 착수 가능 |
+| 14:27:06 | Developer | GitManager | PR 요청 | 기체 스프라이트 프리팹 세팅 및 커밋 완료, Clean PR 발행 요청 |
+| 14:28:38 | GitManager | QA | QA 검수 요청 | 기체 스프라이트 세팅 PR #23 생성 완료, QA 검수 요청 |
+| 14:31:15 | QA | GitManager | 문서 동기화 요청 | 기체 스프라이트 세팅 PR #23 승인(Approve) 완료, develop 문서 동기화 요청 |
