@@ -179,5 +179,47 @@ namespace Galaga.Tests
 
             UnityEngine.Object.DestroyImmediate(expObj);
         }
+
+        #region Issue #19 Bullet Self Damage Prevention Tests
+
+        [Test]
+        public void PlayerBullet_DoesNotDamage_Player_OnTriggerEnter()
+        {
+            // Arrange
+            bool returnedToPool = false;
+            _playerBullet.Initialize((b) => { returnedToPool = true; });
+            int initialLives = _playerHealth.CurrentLives;
+
+            // Act - PlayerBullet collides with Player
+            var triggerMethod = typeof(PlayerBullet).GetMethod("OnTriggerEnter2D", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var playerCollider = _playerObj.GetComponent<BoxCollider2D>();
+            triggerMethod.Invoke(_playerBullet, new object[] { playerCollider });
+
+            // Assert
+            Assert.AreEqual(initialLives, _playerHealth.CurrentLives, "PlayerHealth must NOT take damage from PlayerBullet.");
+            Assert.IsFalse(returnedToPool, "PlayerBullet must NOT return to pool when colliding with Player.");
+            Assert.IsTrue(_bulletObj.activeSelf, "PlayerBullet must remain active when colliding with Player.");
+        }
+
+        [Test]
+        public void EnemyBullet_DoesNotDamage_Enemy_OnTriggerEnter()
+        {
+            // Arrange
+            bool returnedToPool = false;
+            _enemyBullet.Initialize(Vector2.down, 16f, (b) => { returnedToPool = true; });
+            int initialHp = _enemyBase.CurrentHP;
+
+            // Act - EnemyBullet collides with Enemy
+            var triggerMethod = typeof(EnemyBullet).GetMethod("OnTriggerEnter2D", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var enemyCollider = _enemyObj.GetComponent<BoxCollider2D>();
+            triggerMethod.Invoke(_enemyBullet, new object[] { enemyCollider });
+
+            // Assert
+            Assert.AreEqual(initialHp, _enemyBase.CurrentHP, "EnemyBase must NOT take damage from EnemyBullet.");
+            Assert.IsFalse(returnedToPool, "EnemyBullet must NOT return to pool when colliding with Enemy.");
+            Assert.IsTrue(_enemyBulletObj.activeSelf, "EnemyBullet must remain active when colliding with Enemy.");
+        }
+
+        #endregion
     }
 }
