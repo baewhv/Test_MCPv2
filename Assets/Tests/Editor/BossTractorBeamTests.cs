@@ -120,6 +120,34 @@ namespace Galaga.Tests
             Assert.AreEqual(-10.0f - 0.5f, vertices[3].y, 0.001f);
         }
 
+        [Test]
+        public void BossTractorBeam_WhenBossRotates180Degrees_MaintainsWorldDownwardOrientation()
+        {
+            _bossObject.transform.position = new Vector3(0f, 1.0f, 0f);
+            _bossObject.transform.rotation = Quaternion.Euler(0f, 0f, 180f);
+
+            _tractorBeam.ActivateBeam(4.0f);
+
+            // 빔의 월드 회전이 정방향(identity)으로 정렬되었는지 검증
+            Assert.AreEqual(Quaternion.identity.eulerAngles, _tractorBeam.transform.rotation.eulerAngles);
+
+            Vector2[] worldVertices = _tractorBeam.GetWorldVertices();
+            Assert.IsNotNull(worldVertices);
+            Assert.AreEqual(4, worldVertices.Length);
+
+            // 상단 버텍스는 보스 위치(Y = 1.0f) 근처
+            Assert.AreEqual(1.0f, worldVertices[0].y, 0.01f);
+            Assert.AreEqual(1.0f, worldVertices[1].y, 0.01f);
+
+            // 하단 버텍스는 하향(Y = 1.0f - 8.333f = -7.333f)으로 전개되어야 함
+            Assert.AreEqual(1.0f - _tractorBeam.BeamHeight, worldVertices[2].y, 0.01f);
+            Assert.AreEqual(1.0f - _tractorBeam.BeamHeight, worldVertices[3].y, 0.01f);
+
+            // 하단 Y가 상단 Y보다 아래쪽에 위치하는지 검증
+            Assert.Less(worldVertices[2].y, worldVertices[0].y);
+            Assert.Less(worldVertices[3].y, worldVertices[1].y);
+        }
+
         #endregion
 
         #region BossTractorBeam Lifecycle & Activation Tests
@@ -149,9 +177,6 @@ namespace Galaga.Tests
         {
             _tractorBeam.ActivateBeam(4.0f);
             Assert.IsTrue(_tractorBeam.IsBeamActive);
-
-            bool callbackInvoked = false;
-            _tractorBeam.OnBeamActivated += () => callbackInvoked = true;
 
             // Invoke OnDisable via reflection
             MethodInfo onDisableMethod = typeof(BossTractorBeam).GetMethod("OnDisable", BindingFlags.NonPublic | BindingFlags.Instance);

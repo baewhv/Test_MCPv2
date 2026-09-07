@@ -360,6 +360,12 @@ namespace Galaga.Gameplay.Enemy
             boss.SetState(EnemyState.Diving);
             _activeDivingEnemies.Add(boss);
 
+            EnemyBoss enemyBoss = boss.GetComponent<EnemyBoss>();
+            if (enemyBoss != null)
+            {
+                enemyBoss.NotifyTractorBeamDiveStarted();
+            }
+
             BezierPathFollower follower = boss.GetComponent<BezierPathFollower>();
             if (follower != null)
             {
@@ -391,11 +397,17 @@ namespace Galaga.Gameplay.Enemy
             EnemyBoss enemyBoss = boss.GetComponent<EnemyBoss>();
             BossTractorBeam beam = boss.GetComponentInChildren<BossTractorBeam>(true);
 
+            if (beam != null)
+            {
+                beam.AlignToWorldDown();
+            }
+
             if (enemyBoss != null)
             {
                 enemyBoss.StartTractorBeam();
                 if (enemyBoss.TractorBeam != null)
                 {
+                    enemyBoss.TractorBeam.AlignToWorldDown();
                     Action onBeamEnd = null;
                     onBeamEnd = () =>
                     {
@@ -457,6 +469,8 @@ namespace Galaga.Gameplay.Enemy
             BezierPathFollower follower = boss.GetComponent<BezierPathFollower>();
             if (follower != null)
             {
+                follower.RotateAlongPath = true;
+                follower.RotationOffset = -90f;
                 follower.SetPath(postSegments, _diveSpeed, false);
                 Action onCompleted = null;
                 onCompleted = () =>

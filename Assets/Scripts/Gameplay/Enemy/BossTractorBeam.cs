@@ -213,7 +213,24 @@ namespace Galaga.Gameplay.Enemy
                 return;
             }
 
+            AlignToWorldDown();
             UpdateVisualAnimation();
+        }
+
+        private void LateUpdate()
+        {
+            if (_isBeamActive)
+            {
+                AlignToWorldDown();
+            }
+        }
+
+        /// <summary>
+        /// 부모 보스 기체의 회전 상태와 관계없이 트랙터 빔이 월드 좌표계 기준 하향(-Y)을 향하도록 트랜스폼 회전을 정렬합니다.
+        /// </summary>
+        public void AlignToWorldDown()
+        {
+            transform.rotation = Quaternion.identity;
         }
 
         /// <summary>
@@ -232,6 +249,20 @@ namespace Galaga.Gameplay.Enemy
                 new Vector2(halfBottom, -_beamHeight) + _beamOffset,
                 new Vector2(-halfBottom, -_beamHeight) + _beamOffset
             };
+        }
+
+        /// <summary>
+        /// 월드 좌표계 기준의 사다리꼴 꼭짓점 배열을 반환합니다.
+        /// </summary>
+        public Vector2[] GetWorldVertices()
+        {
+            Vector2[] local = GetLocalVertices();
+            Vector2[] world = new Vector2[local.Length];
+            for (int i = 0; i < local.Length; i++)
+            {
+                world[i] = transform.TransformPoint(local[i]);
+            }
+            return world;
         }
 
         /// <summary>
@@ -322,6 +353,7 @@ namespace Galaga.Gameplay.Enemy
 
             _isBeamActive = true;
             _currentTimer = 0f;
+            AlignToWorldDown();
 
             if (_polygonCollider != null)
             {
