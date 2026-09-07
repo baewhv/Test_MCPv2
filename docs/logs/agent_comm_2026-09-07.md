@@ -5,3 +5,4 @@
 | 13:23:49 | GitManager | PM | Report | develop 최신화 완료 및 fix/issue-19-bullet-self-damage 브랜치 생성 및 원격 push 완료 |
 | 13:27:00 | Developer | GitManager | PR 요청 | Issue #19 탄환 발사자 충돌 버그 수정 완료 및 PR 요청 |
 | 13:27:58 | GitManager | QA | Request | Issue #19 탄환 자폭 버그 수정 PR(#20, https://github.com/baewhv/Test_MCPv2/pull/20) 발행 완료. 검수 및 인계 요청 |
+| 13:30:06 | QA | GitManager | QA 승인 | Issue #19 QA 4대 검수 및 NUnit 100% 통과, PR #20 승인 완료 |
