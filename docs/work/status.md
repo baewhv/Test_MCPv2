@@ -1,7 +1,7 @@
 # 개발 및 기획 진행 상태 (Status)
 
 ## [현재 상태]
-- **진행 상태**: [Developer] 기체 스프라이트 프리팹 세팅 및 C# 연동 완료 ➔ git_manager에게 PR 발행 인계
+- **진행 상태**: [QA] 기체 스프라이트 세팅 QA 검수 통과 및 worklist [x] 완료 ➔ 사용자 최종 Merge 대기
 - **작업 브랜치**: `feat/setup-ship-sprites`
 
 
