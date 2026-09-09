@@ -37,6 +37,11 @@
 | `PlayerHealth` (`PF_Player`) | `DifficultyRankManager` | 이벤트 구독 (`OnLivesChanged`) | 플레이어 잔기 차감 피격/사망 시 데스 페널티(-3 랭크) 적용 |
 | `EnemyBoss` (`PF_Enemy_Boss`) | `BossTractorBeam` (`PF_BossTractorBeam`) | 자식 직렬화 참조 / 제어 | 다이브 고도 도달 시 트랙터 빔 전개(`StartTractorBeam()`) 및 회수 |
 | `BossTractorBeam` (`PF_BossTractorBeam`) | `PlayerController` / `PlayerHealth` | OnTriggerEnter2D | 플레이어 기체 포획 영역 진입 감지 및 `OnTargetCaptured` 이벤트 발행 |
+| `BossTractorBeam` (`PF_BossTractorBeam`) | `FighterCaptureController` | 직접 호출 / `StartCaptureSequence()` | 트랙터 빔 피격 시 4단계 포획 시퀀스(조작상실->스핀->견인->결속) 개시 |
+| `FighterCaptureController` | `PlayerController` / `PlayerShooting` | 상태 제어 (`CanMove`, `CanShoot`) | 포획 개시 시 조작권 박탈, 리스폰 시 조작권 회복 |
+| `FighterCaptureController` | `PlayerHealth` | 상태 제어 / 잔기 차감 | 포획 중 무적 부여, Phase 4 진입 시 잔기 차감(`DeductLifeOnCapture()`) 및 차기 기체 출격 |
+| `FighterCaptureController` | `EnemyBoss` / `CapturedFighter` | 인스턴스 생성 및 슬롯 결속 | Phase 4에서 `CapturedFighter`를 생성하여 보스 상단 슬롯(`AttachCapturedFighter()`)에 결속 |
+| `CapturedFighter` (`PF_Enemy_CapturedFighter`) | `EnemyBoss` | 트랜스폼 부모-자식 결속 | 보스 상단 슬롯 안착, 적군 상태 틴트 적용 및 보스 다이브 동반 비행 준비 |
 
 ---
 
