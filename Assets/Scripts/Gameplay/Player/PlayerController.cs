@@ -29,6 +29,19 @@ namespace Galaga.Gameplay.Player
 
         private float _currentInputX;
         private bool _isExternalInput = false;
+        private bool _canMove = true;
+
+        public bool CanMove
+        {
+            get => _canMove;
+            set => _canMove = value;
+        }
+
+        public bool CanControl
+        {
+            get => _canMove;
+            set => _canMove = value;
+        }
 
         public float MoveSpeed
         {
@@ -94,13 +107,19 @@ namespace Galaga.Gameplay.Player
 
         private void Update()
         {
+            if (!_canMove)
+            {
+                _currentInputX = 0f;
+                return;
+            }
+
             ReadInput();
             Move(Time.deltaTime);
         }
 
         private void ReadInput()
         {
-            if (_isExternalInput)
+            if (!_canMove || _isExternalInput)
             {
                 return;
             }
@@ -153,6 +172,11 @@ namespace Galaga.Gameplay.Player
         /// </summary>
         public void Move(float deltaTime)
         {
+            if (!_canMove && !_isExternalInput)
+            {
+                return;
+            }
+
             Vector3 pos = transform.position;
             pos.x += _currentInputX * _moveSpeed * deltaTime;
             pos.y = _fixedYPosition;

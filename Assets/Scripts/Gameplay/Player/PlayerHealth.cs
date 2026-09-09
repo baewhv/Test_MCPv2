@@ -177,6 +177,25 @@ namespace Galaga.Gameplay.Player
         }
 
         /// <summary>
+        /// 트랙터 빔 포획 완료 시 잔기를 1 차감합니다. 잔기 소진 시 HandleDeath()를 호출합니다.
+        /// </summary>
+        public void DeductLifeOnCapture()
+        {
+            if (_currentLives > 0)
+            {
+                _currentLives--;
+                OnLivesChanged?.Invoke(_currentLives);
+            }
+
+            if (_currentLives <= 0)
+            {
+                _currentLives = 0;
+                _isDead = true;
+                HandleDeath();
+            }
+        }
+
+        /// <summary>
         /// 플레이어를 중앙 최하단 리스폰 위치로 재배치하고 무적 시퀀스를 시작합니다.
         /// </summary>
         public void Respawn()

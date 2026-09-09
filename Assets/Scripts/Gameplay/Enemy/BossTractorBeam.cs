@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using Galaga.Gameplay.Player;
 
 namespace Galaga.Gameplay.Enemy
 {
@@ -472,12 +473,26 @@ namespace Galaga.Gameplay.Enemy
             }
 
             // 플레이어 충돌 감지
-            if (collision.CompareTag("Player") ||
-                collision.name.Contains("Player") ||
-                collision.GetComponent<Galaga.Gameplay.Player.PlayerController>() != null ||
-                collision.GetComponent<Galaga.Gameplay.Player.PlayerHealth>() != null)
+            PlayerController player = collision.GetComponent<PlayerController>();
+            if (player == null)
+            {
+                player = collision.GetComponentInParent<PlayerController>();
+            }
+
+            bool isPlayer = player != null ||
+                            collision.CompareTag("Player") ||
+                            collision.name.Contains("Player") ||
+                            collision.GetComponent<PlayerHealth>() != null;
+
+            if (isPlayer)
             {
                 OnTargetCaptured?.Invoke(collision);
+
+                if (player != null && FighterCaptureController.Instance != null && !FighterCaptureController.Instance.IsCapturing)
+                {
+                    EnemyBoss boss = _ownerBoss != null ? _ownerBoss.GetComponent<EnemyBoss>() : GetComponentInParent<EnemyBoss>();
+                    FighterCaptureController.Instance.StartCaptureSequence(player, this, boss);
+                }
             }
         }
     }

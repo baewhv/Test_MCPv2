@@ -285,7 +285,10 @@ public void StartPathFollow(BezierSegment[] segments, float speed, bool alignRot
             _flashCoroutine = null;
         }
 
-        private void ApplyColor(Color color)
+        /// <summary>
+        /// 렌더러에 머티리얼 프로퍼티 블록을 통해 지정된 색상을 적용합니다.
+        /// </summary>
+        public void ApplyColor(Color color)
         {
             if (_renderer == null)
             {
