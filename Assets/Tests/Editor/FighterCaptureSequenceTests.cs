@@ -344,6 +344,60 @@ namespace Galaga.Tests
             Object.DestroyImmediate(cfObj);
         }
 
+        [Test]
+        public void CapturedFighter_EnemyBaseDestroyed_FiresOnFighterDestroyedEvent()
+        {
+            GameObject cfObj = new GameObject("CapturedFighterTestDestroy");
+            EnemyBase enemyBase = cfObj.AddComponent<EnemyBase>();
+            cfObj.AddComponent<SpriteRenderer>();
+            CapturedFighter capturedFighter = cfObj.AddComponent<CapturedFighter>();
+
+            // Trigger Awake & OnEnable
+            MethodInfo awakeMethod = typeof(CapturedFighter).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
+            awakeMethod?.Invoke(capturedFighter, null);
+            MethodInfo onEnableMethod = typeof(CapturedFighter).GetMethod("OnEnable", BindingFlags.NonPublic | BindingFlags.Instance);
+            onEnableMethod?.Invoke(capturedFighter, null);
+
+            bool destroyedFired = false;
+            capturedFighter.OnFighterDestroyed += (f) => destroyedFired = true;
+
+            enemyBase.Die();
+
+            Assert.IsTrue(destroyedFired, "OnFighterDestroyed should fire when underlying EnemyBase dies");
+
+            Object.DestroyImmediate(cfObj);
+        }
+
+        [Test]
+        public void FighterCaptureController_Events_FireInCorrectSequenceThroughAllPhases()
+        {
+            _tractorBeam.ActivateBeam(4.0f);
+
+            var phaseList = new System.Collections.Generic.List<CapturePhase>();
+            bool captureStarted = false;
+            bool captureCompleted = false;
+
+            _captureController.OnCaptureStarted += (p, b) => captureStarted = true;
+            _captureController.OnPhaseChanged += (phase) => phaseList.Add(phase);
+            _captureController.OnCaptureCompleted += (f) => captureCompleted = true;
+
+            _captureController.StartCaptureSequence(_playerController, _tractorBeam, _enemyBoss);
+
+            // Phase 1 -> 2 -> 3 -> 4 -> Complete
+            _captureController.UpdateSequence(0.21f);
+            _captureController.UpdateSequence(1.01f);
+            _captureController.UpdateSequence(1.01f);
+            _captureController.UpdateSequence(0.81f);
+
+            Assert.IsTrue(captureStarted);
+            Assert.AreEqual(4, phaseList.Count);
+            Assert.AreEqual(CapturePhase.Phase1_ControlLoss, phaseList[0]);
+            Assert.AreEqual(CapturePhase.Phase2_SpinAlign, phaseList[1]);
+            Assert.AreEqual(CapturePhase.Phase3_TractorPull, phaseList[2]);
+            Assert.AreEqual(CapturePhase.Phase4_FormationBind, phaseList[3]);
+            Assert.IsTrue(captureCompleted);
+        }
+
         #endregion
     }
 }
