@@ -1,8 +1,8 @@
 # 개발 및 기획 진행 상태 (Status)
 
 ## [현재 상태]
-- **진행 상태**: [QA] 기체 스프라이트 세팅 QA 검수 통과 및 worklist [x] 완료 ➔ 사용자 최종 Merge 대기
-- **작업 브랜치**: `feat/setup-ship-sprites`
+- **진행 상태**: [QA] Task 5-2 기체 포획 시퀀스 QA 검수 통과 및 worklist [x] 완료 ➔ 사용자 최종 Merge 대기
+- **작업 브랜치**: `feat/task5-2-fighter-capture-sequence`
 
 
 
