@@ -68,6 +68,12 @@ namespace Galaga.Gameplay.Combat
             set => _canShoot = value;
         }
 
+        public bool CanFire
+        {
+            get => _canShoot;
+            set => _canShoot = value;
+        }
+
         public PlayAreaManager PlayAreaManager
         {
             get => _playAreaManager;

@@ -10,7 +10,8 @@ namespace Galaga.Gameplay.Enemy
         Zako = 0,       // 자코 (드론 / 청색 곤충, 기본 HP 1)
         Goei = 1,       // 고에이 (가드 / 적색 나비, 기본 HP 1)
         BossGalaga = 2, // 보스 갤러그 (커맨더 / 녹-청 대형기, 기본 HP 2)
-        Boss = 2        // BossGalaga alias
+        Boss = 2,       // BossGalaga alias
+        CapturedFighter = 3 // 포획된 아군 기체 (적군 상태, 기본 HP 1)
     }
 
     /// <summary>
